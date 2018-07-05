@@ -14,12 +14,17 @@
 
 class ManagerConnection {
 public:
+	// Enum s
+	enum CONNECTION_TYPE {
+		UDP, TCP
+	};
+	
 	// Constructors
 	ManagerConnection();
 	~ManagerConnection();
 	
 	// Methods
-	bool initialize();
+	bool initialize(const CONNECTION_TYPE type = TCP);
 	std::shared_ptr<Server> createServer(const int port = 80, const int pending = 10);
 	std::shared_ptr<Socket> connectTo(const std::string& ipAdress = "localhost", const int port = 80);
 	

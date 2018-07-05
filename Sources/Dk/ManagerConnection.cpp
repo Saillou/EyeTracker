@@ -9,7 +9,7 @@ ManagerConnection::~ManagerConnection() {
 }
 
 // Methods
-bool ManagerConnection::initialize() {
+bool ManagerConnection::initialize(const CONNECTION_TYPE type) {
 	// Avoid startup again
 	if(_initialized)
 		return _initialized;

@@ -14,6 +14,11 @@ namespace Protocole {
 	// Base messages
 	class Message {
 	public:
+		// Enums
+		enum DIRECTION {
+			S_NONE, S_IN, S_OUT
+		};
+		
 		// Constructeurs
 		Message();
 		virtual ~Message() = 0;
@@ -29,10 +34,6 @@ namespace Protocole {
 		static std::string To_string(const std::vector<char>& vchar);
 		static std::vector<char> To_vector(const std::string& vchar);
 
-		// Enums
-		enum DIRECTION {
-			S_NONE, S_IN, S_OUT
-		};
 	};
 	
 	// Used for socket message
