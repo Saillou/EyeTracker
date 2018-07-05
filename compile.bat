@@ -1,6 +1,6 @@
 @echo off
 set exename=client
-set folder=D:\Prog\C++Files\030_Sockets\EyeTracker\
+set folder=D:\Prog\C++Files\030_Sockets\EyeTracker\Windows\
 cd /d %folder%
 
 ::Delete existing executable
@@ -10,13 +10,13 @@ if exist Release\%exename%.exe (
 
 ::Compile sources
 echo Compile
-cd Obj
+cd Objects
 g++ -c -std=gnu++11 -O2 -Wall ^
-	..\Sources\main.cpp ^
-	..\Sources\Dk\Protocole.cpp ^
-	..\Sources\Dk\Socket.cpp ^
-	..\Sources\Dk\Server.cpp ^
-	..\Sources\Dk\ManagerConnection.cpp ^
+	..\..\Sources\main_windows.cpp ^
+	..\..\Sources\Dk\Protocole.cpp ^
+	..\..\Sources\Dk\Socket.cpp ^
+	..\..\Sources\Dk\Server.cpp ^
+	..\..\Sources\Dk\ManagerConnection.cpp ^
 	-ID:\Dev\Opencv3\opencv\build_minGW\install\include
 	
 
@@ -24,11 +24,11 @@ g++ -c -std=gnu++11 -O2 -Wall ^
 echo Link
 cd ..\
 g++ -o Release\%exename%.exe ^
-	Obj\main.o ^
-	Obj\Protocole.o ^
-	Obj\Socket.o ^
-	Obj\Server.o ^
-	Obj\ManagerConnection.o ^
+	Objects\main_windows.o ^
+	Objects\Protocole.o ^
+	Objects\Socket.o ^
+	Objects\Server.o ^
+	Objects\ManagerConnection.o ^
 	-LD:\Dev\Opencv3\opencv\build_minGW\install\x86\mingw\lib ^
 	-lopencv_core341 -lopencv_imgproc341 -lopencv_highgui341 -lopencv_imgcodecs341 -lopencv_videoio341 -lm ^
 	-lws2_32
