@@ -17,9 +17,9 @@ makePathSources() {
 	# Sources
 	for source in "${Sources[@]}"
 	do
-		if [ -f "../Sources/$source.cpp" ]
+		if [ -f "../../Sources/$source.cpp" ]
 		then
-			PathSources="$PathSources ../Sources/$source.cpp"
+			PathSources="$PathSources ../../Sources/$source.cpp"
 		else
 			echo "$source.cpp is missing"
 			return 0
@@ -34,9 +34,9 @@ makePathSources() {
 	# Sources of Lib Dk
 	for source in "${Dk[@]}"
 	do
-		if [ -f "../Sources/Dk/$source.cpp" ]
+		if [ -f "../../Sources/Dk/$source.cpp" ]
 		then
-			PathSources="$PathSources ../Sources/Dk/$source.cpp"
+			PathSources="$PathSources ../../Sources/Dk/$source.cpp"
 		else
 			echo "Dk/$source.cpp is missing"
 			return 0
@@ -75,12 +75,13 @@ makePathObjects() {
 
 
 # Define environnement
+cd "Ubuntu"
 create "Objects"
 create "Release"
 
 OutputName="EyeTracker"
 declare -a Sources=(
-	"main" 
+	"main_ubuntu" 
 )
 declare -a Dk=(
 	"ManagerConnection" 
@@ -126,12 +127,10 @@ g++ -o $OutputName \
 	-lopencv_imgproc \
 	-lopencv_imgcodecs \
 	-lopencv_videoio \
-	
-cd ../
 
 
 # Launch
 echo "-----------"
-./Release/$OutputName
+./$OutputName
 
 exit 0
