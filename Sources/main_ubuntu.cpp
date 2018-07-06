@@ -44,7 +44,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 			*ptrCap >> frameCam;
 			cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
-		std::cout << clock() - clockFrame << std::endl; // <-- END _ mod
+		std::cout << " _ " << clock() - clockFrame << std::endl; // <-- END _ mod
 		
 		// Received
 		server->read(msg, idClient);
