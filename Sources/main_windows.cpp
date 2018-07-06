@@ -3,6 +3,8 @@
 #include <opencv2\highgui.hpp>
 #include <opencv2\imgproc.hpp>
 
+#include <turbojpeg.h>
+
 #include "Dk/Protocole.hpp"
 #include "Dk/ManagerConnection.hpp"
 
@@ -17,7 +19,8 @@ int main() {
 	if(sock == nullptr)
 		return 0;
 	
-	// -- Create empty message
+	// -- Create variables
+	tjhandle _jpegDecompressor = tjInitDecompress();
 	BinMessage msg;
 	
 	// -- Start communication
@@ -53,13 +56,20 @@ int main() {
 						continue;
 					}
 					try {
-						cv::imdecode(msg.getData(), CHANNEL == 1 ? CV_LOAD_IMAGE_GRAYSCALE : CV_LOAD_IMAGE_COLOR, &frame);
+						if(_jpegDecompressor == NULL)
+							cv::imdecode(msg.getData(), CHANNEL == 1 ? CV_LOAD_IMAGE_GRAYSCALE : CV_LOAD_IMAGE_COLOR, &frame);
+						else 
+							tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, TJPF_GRAY, 0);
+						
 						cv::imshow("frame", frame);
 						nbFrames++;
 					}
 					catch(cv::Exception& e) {
 						std::cout << " -- Message >> "<< e.msg << std::endl;
 						std::cout << " -- What >> " << e.what() << std::endl;
+					}
+					catch(...) {
+						std::cout << "Exception but not rule." << std::endl;
 					}
 					
 					clock_t thisClock = clock();
@@ -80,5 +90,6 @@ int main() {
 	sock->write(msg);
 	
 	// -- End
+	tjDestroy(_jpegDecompressor);
 	return 0;
 }

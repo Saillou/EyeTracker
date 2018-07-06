@@ -16,6 +16,7 @@ if not exist Windows\Release (
 	
 	:: Put the dlls inside it
 	set cvBinPath=D:\Dev\Opencv3\opencv\build_minGW\install\x86\mingw\bin\
+	set libjpgPath=D:\Dev\LibJpeg\buildMingw\
 	set thisBinPath=Windows\Release\
 	
 	echo Copy dll needed
@@ -25,6 +26,8 @@ if not exist Windows\Release (
 	Copy !cvBinPath!\libopencv_imgproc341.dll !thisBinPath!
 	Copy !cvBinPath!\libopencv_videoio341.dll !thisBinPath!
 	Copy !cvBinPath!\opencv_ffmpeg341.dll !thisBinPath!
+	
+	Copy !libjpgPath!\libturbojpeg.dll !thisBinPath!
 )
 
 :: Let's go
@@ -47,6 +50,7 @@ g++ -c -std=gnu++11 -O2 -Wall ^
 	..\..\Sources\Dk\Socket.cpp ^
 	..\..\Sources\Dk\Server.cpp ^
 	..\..\Sources\Dk\ManagerConnection.cpp ^
+	-ID:\Dev\LibJpeg\libjpeg-turbo-1.5.2 ^
 	-ID:\Dev\Opencv3\opencv\build_minGW\install\include
 	
 
@@ -60,7 +64,9 @@ if %LINK%==1 (
 		Objects\Socket.o ^
 		Objects\Server.o ^
 		Objects\ManagerConnection.o ^
+		-LD:\Dev\LibJpeg\buildMingw ^
 		-LD:\Dev\Opencv3\opencv\build_minGW\install\x86\mingw\lib ^
+		-lturbojpeg ^
 		-lopencv_core341 -lopencv_imgproc341 -lopencv_highgui341 -lopencv_imgcodecs341 -lopencv_videoio341 -lm ^
 		-lws2_32
 		
