@@ -33,8 +33,8 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	bool run = true;
 	while(run) {
 		// Get the frame
+		std::cout << "-------" << std::endl; // <-- BEG _ mod
 		clock_t clock0 = clock();
-		std::cout << "-------" << std::endl;
 		if(ptrCap == nullptr) {
 			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
 			cv::circle(frameCam, cv::Point(frameCam.cols/2, frameCam.rows/2), 0.25*frameCam.rows*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1, CV_AA);
@@ -46,7 +46,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 			*ptrCap >> frameCam;
 			cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
-		std::cout << clock() - clock0 << std::endl;
+		std::cout << clock() - clock0 << std::endl; // <-- END _ mod
 		
 		// Received
 		server->read(msg, idClient);
@@ -79,9 +79,9 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 				case BIN_GAZO: 
 				{	
 					try {
-						std::cout << clock() - clock0 << std::endl;
+						std::cout << clock() - clock0 << std::endl; // <-- BEG _ mod
 						cv::imencode(format, frameCam, buf, params);
-						std::cout << clock() - clock0 << std::endl;
+						std::cout << clock() - clock0 << std::endl; // <-- End _ mod
 						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
 						std::cout << clock() - clock0 << std::endl;
 						server->write(msg, idClient);
