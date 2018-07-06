@@ -17,7 +17,7 @@ using namespace Protocole;
 
 
 void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
-	std::cout << "Handle new client" << std::endl;
+	// std::cout << "Handle new client" << std::endl;
 	BinMessage msg;
 	
 	// Define frame expected
@@ -30,8 +30,8 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	const std::string format = ".jpg";
 	
 	// -- Handle client --
-	bool run = true;
-	while(run) {
+	bool run = false;
+	do {
 		// Get the frame
 		if(ptrCap == nullptr) {
 			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
@@ -45,47 +45,48 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 		}
 		
 		// Received
-		server->read(msg, idClient);
-		
-		// Answer
-		if(msg.isValide()) {
-			switch(msg.getAction()) {
-				// Client quit
-				case BIN_QUIT:
-				{ 
-					run = false;
-				}
-				break;
-				
-				// Frame info asked
-				case BIN_INFO:
-				{ 
-					CmdMessage cmd;
-					cmd.addCommand(CMD_HEIGHT, 	std::to_string(frameCam.rows));
-					cmd.addCommand(CMD_WIDTH, 	std::to_string(frameCam.cols));
-					cmd.addCommand(CMD_CHANNEL, std::to_string(frameCam.channels()));
+		if(server->read(msg, idClient)) {
+			// Answer
+			if(msg.isValide()) {
+				switch(msg.getAction()) {
+					// Client quit
+					case BIN_QUIT:
+					{ 
+						run = false;
+					}
+					break;
 					
-					msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
-					server->write(msg, idClient);
-				}
-				break;
-				
-				// Send a frame
-				case BIN_GAZO: 
-				{	
-					cv::imencode(format, frameCam, buf, params);
-					msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
-					server->write(msg, idClient);
+					// Frame info asked
+					case BIN_INFO:
+					{ 
+						CmdMessage cmd;
+						cmd.addCommand(CMD_HEIGHT, 	std::to_string(frameCam.rows));
+						cmd.addCommand(CMD_WIDTH, 	std::to_string(frameCam.cols));
+						cmd.addCommand(CMD_CHANNEL, std::to_string(frameCam.channels()));
+						
+						msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
+						server->write(msg, idClient);
+					}
+					break;
+					
+					// Send a frame
+					case BIN_GAZO: 
+					{	
+						cv::imencode(format, frameCam, buf, params);
+						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+						server->write(msg, idClient);
 
-					iFrameSend++;					
+						iFrameSend++;					
+					}
+					break;
 				}
-				break;
+
 			}
-
 		}
-	}
+	} while(run);
 	server->closeSocket(idClient);
-	std::cout << "Client disconnected." << std::endl;
+	std::cout << "." << std::endl;
+	// std::cout << "Client disconnected." << std::endl;
 }
 
 
