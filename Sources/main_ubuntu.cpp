@@ -2,6 +2,8 @@
 #include <fstream>
 #include <cmath>
 
+#include <turbojpeg.h>
+
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -15,6 +17,7 @@
 
 using namespace Protocole;
 
+tjhandle _jpegCompressor = tjInitCompress();
 
 void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
 	std::cout << "Handle new client" << std::endl;
