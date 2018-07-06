@@ -17,22 +17,29 @@
 
 using namespace Protocole;
 
-tjhandle _jpegCompressor = tjInitCompress();
-
 void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
+	const int QUALITY = 80;
+	
+	// Encodage TURBO-JPG
+	tjhandle _jpegCompressor 	= tjInitCompress();
+	unsigned char* buff 		= tjAlloc(25000);
+	unsigned long bufSize 		= 0;
+	
+	// Encodage OPENCV
+	std::vector<uchar> buf;
+	const std::vector<int> params{CV_IMWRITE_JPEG_QUALITY, QUALITY};
+	const std::string format = ".jpg";
+		
+	// ---------------------------- 
+					
 	std::cout << "Handle new client" << std::endl;
 	BinMessage msg;
 	
 	// Define frame expected
-	cv::Mat frameCam 			= cv::Mat::zeros(1000, 1000, CV_8UC3);
+	cv::Mat frameCam 		= cv::Mat::zeros(480, 640, CV_8UC3);
 	const cv::Point center 	= cv::Point(frameCam.cols/2, frameCam.rows/2);
 	const int diameterMax 	= 0.25*frameCam.rows;
 	size_t iFrameSend = 0;
-	
-	// Encodage declaration variables
-	std::vector<uchar> buf;
-	const std::vector<int> params{CV_IMWRITE_JPEG_QUALITY, 80};
-	const std::string format = ".jpg";
 	
 	// -- Handle client --
 	bool run = true;
@@ -77,11 +84,31 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 				case BIN_GAZO: 
 				{	
 					try {
-						clock_t clockImdcode = clock();
-						cv::imencode(format, frameCam, buf, params); // <-- Need mod
-						std::cout << clock() - clockImdcode << std::endl; 
-						
-						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+						if(_jpegCompressor == NULL) {
+							cv::imencode(
+								format, 	// Extension, std::string
+								frameCam, 	// Data in, cv::Mat
+								buf, 		// Data out, vector<char>
+								params		// Jpeg copmression, vector<int>
+							);
+							msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+						}
+						else {							
+							tjCompress2(
+								_jpegCompressor, 
+								frameCam.data, 	// ptr to data, const uchar *
+								frameCam.cols, 	// width
+								TJPAD(frameCam.cols * tjPixelSize[TJPF_GRAY]), // bytes per line
+								frameCam.rows,	// height
+								TJPF_GRAY, 		// pixel format
+								&buff, 			// ptr to buffer, unsigned char **
+								&bufSize, 		// ptr to buffer size, unsigned long *
+								TJSAMP_GRAY,	// chrominace sub sampling
+								QUALITY, 		// quality, int
+								0 				// flags
+							);
+							msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
+						}
 						server->write(msg, idClient);
 					}
 					catch(...) {
@@ -97,8 +124,12 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 
 		}
 	}
+	
 	server->closeSocket(idClient);
 	std::cout << "Client disconnected." << std::endl;
+	
+	tjFree(buff);
+	tjDestroy(_jpegCompressor);
 }
 
 

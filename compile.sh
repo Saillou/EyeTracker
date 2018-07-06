@@ -125,7 +125,7 @@ echo "Link objects"
 g++ -o $OutputName \
 	$PathObjects \
 	-L/usr/Local/lib/ \
-	-L/usr/Local/lib/libjpeg/
+	-L/usr/Local/lib/libjpeg/ \
 	-lopencv_core \
 	-lturbojpeg \
 	-lopencv_highgui \
