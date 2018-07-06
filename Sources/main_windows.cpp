@@ -48,9 +48,14 @@ int main() {
 				// Answer
 				sock->read(msg);
 				if(msg.isValide()) {
-					cv::imdecode(msg.getData(), CHANNEL == 1 ? CV_LOAD_IMAGE_GRAYSCALE : CV_LOAD_IMAGE_COLOR, &frame);
-					cv::imshow("frame", frame);
-					nbFrames++;
+					try {
+						cv::imdecode(msg.getData(), CHANNEL == 1 ? CV_LOAD_IMAGE_GRAYSCALE : CV_LOAD_IMAGE_COLOR, &frame);
+						cv::imshow("frame", frame);
+						nbFrames++;
+					}
+					catch(cv::Exception& e) {
+						std::cout << e.msg << ", what: " << e.what() << std::endl;
+					}
 					
 					clock_t thisClock = clock();
 					if(thisClock - lastClock > 1000) {

@@ -55,69 +55,92 @@ bool Socket::initialize(const CONNECTION_TYPE type)	{
 	return true;
 }
 bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
-	// Check
-	if(_idSocket <= 0 || _type == NONE) {
-		std::cout << "Socket not connected." << std::endl;
+	try {
+		// Check
+		if(_idSocket <= 0 || _type == NONE) {
+			std::cout << "Socket not connected." << std::endl;
+			return false;
+		}
+		
+		if(idSocket <= 0)
+			idSocket = _idSocket;
+		
+		if(_type ==TCP) {
+			// -- Read message --
+			int received 			= -1;
+			size_t messageSize = 0;
+			size_t messageCode = 0;
+			char* buffer 			=	nullptr;
+			
+			// Message size
+			received 	= -1;
+			buffer 	= (char*)realloc(buffer, Protocole::BinMessage::SIZE_SIZE * sizeof(char));
+			
+			if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_SIZE, 0)) == (int)Protocole::BinMessage::SIZE_SIZE) {
+				messageSize = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_SIZE);
+			}
+
+			// Message code
+			received 	= -1;
+			buffer 	= (char*)realloc(buffer, Protocole::BinMessage::SIZE_CODE * sizeof(char));
+			
+			if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_CODE, 0)) == (int)Protocole::BinMessage::SIZE_CODE) {
+				messageCode = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_CODE);
+			}
+			
+			// Message data
+			size_t already_read = 0;
+			received 	= -1;
+			buffer 	= (char*)realloc(buffer, messageSize * sizeof(char));
+			
+			while(already_read < messageSize) {
+				if((received = recv(idSocket, buffer + already_read, BUFFER_SIZE_MAX, 0)) > 0) 
+					already_read += received;
+				else 
+					break;
+			}
+			msg.set(messageCode, messageSize, buffer);
+			
+			free(buffer);
+			
+			// Result
+			return msg.isValide();
+		}
+		else {
+			return false;
+		}
+	}
+	catch(...) {
+		std::cout << "Read error" << std::endl;
 		return false;
 	}
-	
-	if(idSocket <= 0)
-		idSocket = _idSocket;
-	
-	// -- Read message --
-	int received 			= -1;
-	size_t messageSize = 0;
-	size_t messageCode = 0;
-	char* buffer 			=	nullptr;
-	
-	// Message size
-	received 	= -1;
-	buffer 	= (char*)realloc(buffer, Protocole::BinMessage::SIZE_SIZE * sizeof(char));
-	
-	if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_SIZE, 0)) == (int)Protocole::BinMessage::SIZE_SIZE) {
-		messageSize = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_SIZE);
-	}
-
-	// Message code
-	received 	= -1;
-	buffer 	= (char*)realloc(buffer, Protocole::BinMessage::SIZE_CODE * sizeof(char));
-	
-	if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_CODE, 0)) == (int)Protocole::BinMessage::SIZE_CODE) {
-		messageCode = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_CODE);
-	}
-	
-	// Message data
-	size_t already_read = 0;
-	received 	= -1;
-	buffer 	= (char*)realloc(buffer, messageSize * sizeof(char));
-	
-	while(already_read < messageSize) {
-		if((received = recv(idSocket, buffer + already_read, BUFFER_SIZE_MAX, 0)) > 0) 
-			already_read += received;
-		else 
-			break;
-	}
-	msg.set(messageCode, messageSize, buffer);
-	
-	free(buffer);
-	
-	// Result
-	return msg.isValide();
 }
 bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
-	// Check
-	if(_idSocket <= 0 || _type == NONE) {
-		std::cout << "Socket not connected." << std::endl;
+	try {
+		// Check
+		if(_idSocket <= 0 || _type == NONE) {
+			std::cout << "Socket not connected." << std::endl;
+			return false;
+		}
+		
+		if(idSocket <= 0)
+			idSocket = _idSocket;
+		
+		if(_type == TCP) {
+			auto message = msg.serialize();
+			int sended = (int)message.size();
+			
+			return (send(idSocket, message.data(), sended, 0) == sended);
+		}
+		else if(_type == UDP) {
+			return false;
+		}
+		
+		return false;
+	catch(...) {
+		std::cout << "Write error" << std::endl;
 		return false;
 	}
-	
-	if(idSocket <= 0)
-		idSocket = _idSocket;
-	
-	auto message = msg.serialize();
-	int sended = (int)message.size();
-	
-	return (send(idSocket, message.data(), sended, 0) == sended);
 }
 	
 
