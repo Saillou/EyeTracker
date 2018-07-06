@@ -36,6 +36,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 		if(ptrCap == nullptr) {
 			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
 			cv::circle(frameCam, cv::Point(frameCam.cols/2, frameCam.rows/2), 0.25*frameCam.rows*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1, CV_AA);
+			
 			if(frameCam.channels() > 1)
 				cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
