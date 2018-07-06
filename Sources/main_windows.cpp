@@ -48,6 +48,10 @@ int main() {
 				// Answer
 				sock->read(msg);
 				if(msg.isValide()) {
+					if(msg.getSize() == 0) {
+						std::cout << "size null" << std::endl;
+						continue;
+					}
 					try {
 						cv::imdecode(msg.getData(), CHANNEL == 1 ? CV_LOAD_IMAGE_GRAYSCALE : CV_LOAD_IMAGE_COLOR, &frame);
 						cv::imshow("frame", frame);

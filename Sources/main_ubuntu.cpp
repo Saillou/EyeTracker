@@ -74,6 +74,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 				case BIN_GAZO: 
 				{	
 					cv::imencode(format, frameCam, buf, params);
+					std::cout << buf.size() << std::endl;
 					msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
 					server->write(msg, idClient);
 
