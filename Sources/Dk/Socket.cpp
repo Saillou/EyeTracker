@@ -55,7 +55,7 @@ bool Socket::initialize(const CONNECTION_TYPE type)	{
 	return true;
 }
 bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
-	// try {
+	try {
 		// Check
 		if(_idSocket <= 0 || _type == NONE) {
 			std::cout << "Socket not connected." << std::endl;
@@ -65,7 +65,7 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 		if(idSocket <= 0)
 			idSocket = _idSocket;
 		
-		if(_type == TCP || _type == UDP) {
+		// if(_type == TCP || _type == UDP) {
 			// -- Read message --
 			int received 			= -1;
 			size_t messageSize = 0;
@@ -109,16 +109,16 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 			
 			// Result
 			return msg.isValide();
-		}
-	// }
-	// catch(...) {
-		// std::cout << "Read error" << std::endl;
-	// }
+		// }
+	}
+	catch(...) {
+		std::cout << "Read error" << std::endl;
+	}
 	
 	return false;
 }
 bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
-	// try {
+	try {
 		// Check
 		if(_idSocket <= 0 || _type == NONE) {
 			std::cout << "Socket not connected." << std::endl;
@@ -128,19 +128,19 @@ bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
 		if(idSocket <= 0)
 			idSocket = _idSocket;
 		
-		if(_type == TCP || _type == UDP) {
+		// if(_type == TCP || _type == UDP) {
 			auto message = msg.serialize();
 			int sended = (int)message.size();
 			
 			return (send(idSocket, message.data(), sended, 0) == sended);
-		}
+		// }
 		
 		return false;
-	// }
-	// catch(...) {
-		// std::cout << "Write error" << std::endl;
-		// return false;
-	// }
+	}
+	catch(...) {
+		std::cout << "Write error" << std::endl;
+		return false;
+	}
 }
 	
 
