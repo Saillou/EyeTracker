@@ -28,20 +28,6 @@ bool Socket::initialize(const CONNECTION_TYPE type)	{
 	}
 	else	if(_type == TCP) {
 		_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-		
-		// Create echo
-		struct sockaddr_in clientEcho;
-		memset(&clientEcho, 0, sizeof(clientEcho));
-		
-		clientEcho.sin_addr.s_addr	= inet_addr(_ipAdress.c_str());
-		clientEcho.sin_port				= htons(_port);	
-		clientEcho.sin_family		 	= AF_INET;
-		
-		// Try connection
-		if(connect(_idSocket, (struct sockaddr *)&clientEcho, sizeof(clientEcho)) == SOCKET_ERROR) {
-			std::cout << "Could not reach server." << std::endl;
-			return false;
-		}
 	}
 	else	if(_type == UDP) {
 		_idSocket = socket(PF_INET, SOCK_DGRAM, 0);
@@ -52,10 +38,24 @@ bool Socket::initialize(const CONNECTION_TYPE type)	{
 		return false;
 	}
 	
+	// Create echo
+	struct sockaddr_in clientEcho;
+	memset(&clientEcho, 0, sizeof(clientEcho));
+	
+	clientEcho.sin_addr.s_addr	= inet_addr(_ipAdress.c_str());
+	clientEcho.sin_port				= htons(_port);	
+	clientEcho.sin_family		 	= AF_INET;
+	
+	// Try connection
+	if(connect(_idSocket, (struct sockaddr *)&clientEcho, sizeof(clientEcho)) == SOCKET_ERROR) {
+		std::cout << "Could not reach server." << std::endl;
+		return false;
+	}
+	
 	return true;
 }
 bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
-	try {
+	// try {
 		// Check
 		if(_idSocket <= 0 || _type == NONE) {
 			std::cout << "Socket not connected." << std::endl;
@@ -65,7 +65,7 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 		if(idSocket <= 0)
 			idSocket = _idSocket;
 		
-		if(_type ==TCP) {
+		if(_type == TCP || _type == UDP) {
 			// -- Read message --
 			int received 			= -1;
 			size_t messageSize = 0;
@@ -79,6 +79,8 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 			if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_SIZE, 0)) == (int)Protocole::BinMessage::SIZE_SIZE) {
 				messageSize = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_SIZE);
 			}
+			else // Error size
+				return false;
 
 			// Message code
 			received 	= -1;
@@ -87,6 +89,8 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 			if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_CODE, 0)) == (int)Protocole::BinMessage::SIZE_CODE) {
 				messageCode = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_CODE);
 			}
+			else // Error size
+				return false;
 			
 			// Message data
 			size_t already_read = 0;
@@ -106,17 +110,15 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 			// Result
 			return msg.isValide();
 		}
-		else {
-			return false;
-		}
-	}
-	catch(...) {
-		std::cout << "Read error" << std::endl;
-		return false;
-	}
+	// }
+	// catch(...) {
+		// std::cout << "Read error" << std::endl;
+	// }
+	
+	return false;
 }
 bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
-	try {
+	// try {
 		// Check
 		if(_idSocket <= 0 || _type == NONE) {
 			std::cout << "Socket not connected." << std::endl;
@@ -126,22 +128,19 @@ bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
 		if(idSocket <= 0)
 			idSocket = _idSocket;
 		
-		if(_type == TCP) {
+		if(_type == TCP || _type == UDP) {
 			auto message = msg.serialize();
 			int sended = (int)message.size();
 			
 			return (send(idSocket, message.data(), sended, 0) == sended);
 		}
-		else if(_type == UDP) {
-			return false;
-		}
 		
 		return false;
-	}
-	catch(...) {
-		std::cout << "Write error" << std::endl;
-		return false;
-	}
+	// }
+	// catch(...) {
+		// std::cout << "Write error" << std::endl;
+		// return false;
+	// }
 }
 	
 
