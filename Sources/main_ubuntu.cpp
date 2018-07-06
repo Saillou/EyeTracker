@@ -22,7 +22,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor 	= tjInitCompress();
-	unsigned char* buff 		= tjAlloc(25000);
+	unsigned char* buff 		= tjAlloc(10000);
 	unsigned long bufSize 		= 0;
 	
 	// Encodage OPENCV
@@ -37,6 +37,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	
 	// Define frame expected
 	cv::Mat frameCam 		= cv::Mat::zeros(480, 640, CV_8UC3);
+	cv::Mat frameCamResized	= cv::Mat::zeros(240, 320, CV_8UC1);
 	const cv::Point center 	= cv::Point(frameCam.cols/2, frameCam.rows/2);
 	const int diameterMax 	= 0.25*frameCam.rows;
 	size_t iFrameSend = 0;
@@ -53,6 +54,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 			*ptrCap >> frameCam;
 			cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
+		cv::resize(frameCam, frameCamResized, frameCamResized.size());
 		
 		// Received
 		server->read(msg, idClient);
@@ -71,9 +73,9 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 				case BIN_INFO:
 				{ 
 					CmdMessage cmd;
-					cmd.addCommand(CMD_HEIGHT, 	std::to_string(frameCam.rows));
-					cmd.addCommand(CMD_WIDTH, 	std::to_string(frameCam.cols));
-					cmd.addCommand(CMD_CHANNEL, std::to_string(frameCam.channels()));
+					cmd.addCommand(CMD_HEIGHT, 	std::to_string(frameCamResized.rows));
+					cmd.addCommand(CMD_WIDTH, 	std::to_string(frameCamResized.cols));
+					cmd.addCommand(CMD_CHANNEL, std::to_string(frameCamResized.channels()));
 					
 					msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
 					server->write(msg, idClient);
@@ -87,7 +89,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 						if(_jpegCompressor == NULL) {
 							cv::imencode(
 								format, 	// Extension, std::string
-								frameCam, 	// Data in, cv::Mat
+								frameCamResized,
 								buf, 		// Data out, vector<char>
 								params		// Jpeg copmression, vector<int>
 							);
@@ -96,14 +98,14 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 						else {							
 							tjCompress2(
 								_jpegCompressor, 
-								frameCam.data, 	// ptr to data, const uchar *
-								frameCam.cols, 	// width
-								TJPAD(frameCam.cols * tjPixelSize[TJPF_GRAY]), // bytes per line
-								frameCam.rows,	// height
+								frameCamResized.data, 	// ptr to data, const uchar *
+								frameCamResized.cols, 	// width
+								TJPAD(frameCamResized.cols * tjPixelSize[TJPF_GRAY]), // bytes per line
+								frameCamResized.rows,	// height
 								TJPF_GRAY, 		// pixel format
 								&buff, 			// ptr to buffer, unsigned char **
 								&bufSize, 		// ptr to buffer size, unsigned long *
-								TJSAMP_GRAY,	// chrominace sub sampling
+								TJSAMP_GRAY,		// chrominace sub sampling
 								QUALITY, 		// quality, int
 								0 				// flags
 							);
