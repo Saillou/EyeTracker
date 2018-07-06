@@ -19,22 +19,36 @@ Socket::~Socket() {
 
 // Methods
 bool Socket::initialize(const CONNECTION_TYPE type)	{
-	// Type
-	_type = type;
+	// Type define id
+	_type = type;	
 	
-	// Define id
-	_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-	
-	struct sockaddr_in clientEcho;
-	memset(&clientEcho, 0, sizeof(clientEcho));
-	
-	clientEcho.sin_addr.s_addr	= inet_addr(_ipAdress.c_str());
-	clientEcho.sin_port				= htons(_port);	
-	clientEcho.sin_family		 	= AF_INET;
-	
-	// Try connection
-	if(connect(_idSocket, (struct sockaddr *)&clientEcho, sizeof(clientEcho)) == SOCKET_ERROR) {
-		std::cout << "Could not reach server." << std::endl;
+	if(_type == NONE) {
+		std::cout << "Please, set a type for socket." << std::endl;
+		return false;
+	}
+	else	if(_type == TCP) {
+		_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+		
+		// Create echo
+		struct sockaddr_in clientEcho;
+		memset(&clientEcho, 0, sizeof(clientEcho));
+		
+		clientEcho.sin_addr.s_addr	= inet_addr(_ipAdress.c_str());
+		clientEcho.sin_port				= htons(_port);	
+		clientEcho.sin_family		 	= AF_INET;
+		
+		// Try connection
+		if(connect(_idSocket, (struct sockaddr *)&clientEcho, sizeof(clientEcho)) == SOCKET_ERROR) {
+			std::cout << "Could not reach server." << std::endl;
+			return false;
+		}
+	}
+	else	if(_type == UDP) {
+		_idSocket = socket(PF_INET, SOCK_DGRAM, 0);
+	}
+	else {
+		_type = NONE;
+		std::cout << "Type not recognized for socket." << std::endl;
 		return false;
 	}
 	
@@ -42,7 +56,7 @@ bool Socket::initialize(const CONNECTION_TYPE type)	{
 }
 bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 	// Check
-	if(_idSocket <= 0) {
+	if(_idSocket <= 0 || _type == NONE) {
 		std::cout << "Socket not connected." << std::endl;
 		return false;
 	}
@@ -92,7 +106,7 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 }
 bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
 	// Check
-	if(_idSocket <= 0) {
+	if(_idSocket <= 0 || _type == NONE) {
 		std::cout << "Socket not connected." << std::endl;
 		return false;
 	}
@@ -119,4 +133,7 @@ const int& Socket::getPort() const {
 }
 const int& Socket::getId() const {
 	return _idSocket;
+}
+const Socket::CONNECTION_TYPE& Socket::getType() const {
+	return _type;
 }

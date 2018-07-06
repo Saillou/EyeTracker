@@ -44,6 +44,7 @@ public:
 	const std::string& getIpAdress() const;
 	const int& getPort() const;
 	const int& getId() const;
+	const CONNECTION_TYPE& getType() const;
 	
 	// Enums
 	enum SHUTDOWN_SOCKET {

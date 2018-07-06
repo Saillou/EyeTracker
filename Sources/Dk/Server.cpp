@@ -13,18 +13,32 @@ Server::~Server() {
 
 // Methods
 bool Server::initialize(const CONNECTION_TYPE type)	{
-	// Type
 	_type = type;
 	
-	// Define id
-	_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
+	// Type define id
+	if(_type == NONE) {
+		std::cout << "Please, set a type for server." << std::endl;
+		return false;
+	}
+	else	if(_type == TCP) {
+		_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	}
+	else	if(_type == UDP) {
+		_idSocket = socket(PF_INET, SOCK_DGRAM, 0);
+	}
+	else {
+		_type = NONE;
+		std::cout << "Type not recognized for server." << std::endl;
+		return false;
+	}
+	
+	// Create echo
 	struct sockaddr_in  serverEcho;
 	memset(&serverEcho, 0, sizeof(serverEcho));
 	
+	serverEcho.sin_family		 	= AF_INET;
 	serverEcho.sin_addr.s_addr	= htonl(INADDR_ANY);
 	serverEcho.sin_port				= htons(_port);	
-	serverEcho.sin_family		 	= AF_INET;
 	
 	// Try bind
 	if(bind(_idSocket, (struct sockaddr*)&serverEcho, sizeof(serverEcho)) == SOCKET_ERROR) {
@@ -33,26 +47,34 @@ bool Server::initialize(const CONNECTION_TYPE type)	{
 	}
 	
 	// Listen
-	if(listen(_idSocket, _maxPending) == SOCKET_ERROR) {
-		std::cout << "Could not listen adress." << std::endl;
-		return false;
+	if(_type == TCP) {
+		if(listen(_idSocket, _maxPending) == SOCKET_ERROR) {
+			std::cout << "Could not listen adress." << std::endl;
+			return false;
+		}
 	}
 	
 	return true;
 }
 
 int Server::waitClient() {
-	if(_idSocket <= 0){
-		std::cout << "Server not initialized" << std::endl;
-		return -1;
-	}
-	
 	int clientId = -1;
-	struct sockaddr_in clientEcho;
-	SOCKET_LENGTH len = sizeof(clientEcho);
-		
-	if((clientId = accept(_idSocket, (struct sockaddr*)&clientEcho, &len)) == SOCKET_ERROR) {
-		std::cout << "Failed to accept the client" << std::endl;
+	
+	if(_idSocket <= 0 || _type == NONE){
+		std::cout << "Server not initialized" << std::endl;
+	}
+	else if(_type == TCP) {
+		struct sockaddr_in clientEcho;
+		SOCKET_LENGTH len = sizeof(clientEcho);
+			
+		if((clientId = accept(_idSocket, (struct sockaddr*)&clientEcho, &len)) == SOCKET_ERROR) {
+			std::cout << "Failed to accept the client" << std::endl;
+		}
+	}
+	else if(_type == UDP) {
+		// What to do?
+		// Nothing to wait ?
+		// Read a message connect ? 
 	}
 	
 	return clientId;

@@ -18,6 +18,7 @@ if not exist Windows\Release (
 	set cvBinPath=D:\Dev\Opencv3\opencv\build_minGW\install\x86\mingw\bin\
 	set thisBinPath=Windows\Release\
 	
+	echo Copy dll needed
 	Copy !cvBinPath!\libopencv_core341.dll !thisBinPath!
 	Copy !cvBinPath!\libopencv_highgui341.dll !thisBinPath!
 	Copy !cvBinPath!\libopencv_imgcodecs341.dll !thisBinPath!
