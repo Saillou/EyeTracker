@@ -73,9 +73,15 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 				// Send a frame
 				case BIN_GAZO: 
 				{	
-					cv::imencode(format, frameCam, buf, params);
-					std::cout << buf.size() << std::endl;
-					msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+					try {
+						cv::imencode(format, frameCam, buf, params);
+						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+					}
+					catch(...) {
+						msg.clear();
+						std::cout << "Exception throw" << std::endl;
+					}
+					
 					server->write(msg, idClient);
 
 					iFrameSend++;					
