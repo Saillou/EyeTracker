@@ -13,20 +13,15 @@
 #include "Server.hpp"
 
 class ManagerConnection {
-public:
-	// Enum s
-	enum CONNECTION_TYPE {
-		UDP, TCP
-	};
-	
+public:	
 	// Constructors
 	ManagerConnection();
 	~ManagerConnection();
 	
 	// Methods
-	bool initialize(const CONNECTION_TYPE type = TCP);
-	std::shared_ptr<Server> createServer(const int port = 80, const int pending = 10);
-	std::shared_ptr<Socket> connectTo(const std::string& ipAdress = "localhost", const int port = 80);
+	bool initialize();
+	std::shared_ptr<Server> createServer(const Socket::CONNECTION_TYPE type, const int port = 80, const int pending = 10);
+	std::shared_ptr<Socket> connectTo(const Socket::CONNECTION_TYPE type, const std::string& ipAdress = "localhost", const int port = 80);
 	
 	// Getters
 	bool isInitialized() const;

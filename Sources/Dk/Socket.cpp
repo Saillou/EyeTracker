@@ -4,7 +4,8 @@
 Socket::Socket(const std::string& ipAdress, const int port) :
 	_ipAdress(ipAdress),
 	_port(port),
-	_idSocket(-1)
+	_idSocket(-1),
+	_type(NONE)
 {
 	// Nothing else to do
 }
@@ -17,7 +18,7 @@ Socket::~Socket() {
 }
 
 // Methods
-bool Socket::initialize()	{
+bool Socket::initialize(const CONNECTION_TYPE type)	{
 	// Define id
 	_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	

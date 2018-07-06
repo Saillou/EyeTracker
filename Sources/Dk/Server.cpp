@@ -12,7 +12,7 @@ Server::~Server() {
 }
 
 // Methods
-bool Server::initialize()	{
+bool Server::initialize(const CONNECTION_TYPE type)	{
 	// Define id
 	_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 

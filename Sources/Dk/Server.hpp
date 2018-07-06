@@ -10,7 +10,7 @@ public:
 	~Server();
 	
 	// Methods
-	bool initialize() override;
+	bool initialize(const CONNECTION_TYPE type) override;
 	int waitClient();
 	void closeSocket(int& idSocket);
 	

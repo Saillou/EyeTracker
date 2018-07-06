@@ -24,12 +24,17 @@
 
 class Socket {
 public:
+	// Enum s
+	enum CONNECTION_TYPE {
+		NONE, UDP, TCP
+	};
+	
 	// Constructors
 	Socket(const std::string& ipAdress = "localhost", const int port = 80);
 	virtual ~Socket();
 	
 	// Methods
-	virtual bool initialize();
+	virtual bool initialize(const CONNECTION_TYPE type);
 	bool read(Protocole::BinMessage& msg, int idSocket = -1) const;
 	bool write(Protocole::BinMessage& msg, int idSocket = -1) const;
 	
@@ -55,6 +60,7 @@ protected:
 	std::string _ipAdress;
 	int 			_port;
 	int 			_idSocket;
+	CONNECTION_TYPE _type;
 };
 
 #endif

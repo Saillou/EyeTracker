@@ -98,7 +98,7 @@ int main() {
 	// Create server TCP
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
-	auto server = managerConnection.createServer(SOCKET_PORT, MAXPENDING);
+	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
 
 	// Handle client until sigint
 	std::cout << "Wait for clients" << std::endl;
