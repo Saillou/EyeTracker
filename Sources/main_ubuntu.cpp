@@ -35,7 +35,6 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	bool run = true;
 	while(run) {
 		// Get the frame
-		clock_t clockFrame = clock(); // <-- BEG _ mod
 		if(ptrCap == nullptr) {
 			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, CV_8UC1);
 			cv::circle(frameCam, center, diameterMax*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1);
@@ -44,7 +43,6 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 			*ptrCap >> frameCam;
 			cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
-		std::cout << " _ " << clock() - clockFrame << std::endl; // <-- END _ mod
 		
 		// Received
 		server->read(msg, idClient);
