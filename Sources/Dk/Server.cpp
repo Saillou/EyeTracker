@@ -13,6 +13,9 @@ Server::~Server() {
 
 // Methods
 bool Server::initialize(const CONNECTION_TYPE type)	{
+	// Type
+	_type = type;
+	
 	// Define id
 	_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
