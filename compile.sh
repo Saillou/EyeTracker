@@ -75,6 +75,8 @@ makePathObjects() {
 
 
 # Define environnement
+create "Ubuntu"
+
 cd "Ubuntu"
 create "Objects"
 create "Release"
