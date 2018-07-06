@@ -21,8 +21,9 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	BinMessage msg;
 	
 	// Define frame expected
-	cv::Mat frameCam = cv::Mat::zeros(1000, 1000, CV_8UC3);
-	const cv::Point center(frameCam.cols/2, frameCam.rows/2);
+	cv::Mat frameCam 			= cv::Mat::zeros(1000, 1000, CV_8UC3);
+	const cv::Point center 	= cv::Point(frameCam.cols/2, frameCam.rows/2);
+	const int diameterMax 	= 0.25*frameCam.rows;
 	size_t iFrameSend = 0;
 	
 	// Encodage declaration variables
@@ -37,7 +38,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 		clock_t clockFrame = clock(); // <-- BEG _ mod
 		if(ptrCap == nullptr) {
 			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, CV_8UC1);
-			cv::circle(frameCam, center, 0.25*frameCam.rows*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1);
+			cv::circle(frameCam, center, diameterMax*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1);
 		}
 		else {
 			*ptrCap >> frameCam;
