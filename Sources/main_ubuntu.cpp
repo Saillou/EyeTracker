@@ -22,6 +22,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	
 	// Define frame expected
 	cv::Mat frameCam = cv::Mat::zeros(1000, 1000, CV_8UC3);
+	const cv::Point center(frameCam.cols/2, frameCam.rows/2);
 	size_t iFrameSend = 0;
 	
 	// Encodage declaration variables
@@ -33,24 +34,19 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	bool run = true;
 	while(run) {
 		// Get the frame
-		std::cout << "-------" << std::endl; // <-- BEG _ mod
-		clock_t clock0 = clock();
+		clock_t clockFrame = clock(); // <-- BEG _ mod
 		if(ptrCap == nullptr) {
-			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
-			cv::circle(frameCam, cv::Point(frameCam.cols/2, frameCam.rows/2), 0.25*frameCam.rows*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1, CV_AA);
-			
-			if(frameCam.channels() > 1)
-				cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
+			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, CV_8UC1);
+			cv::circle(frameCam, center, 0.25*frameCam.rows*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1);
 		}
 		else {
 			*ptrCap >> frameCam;
 			cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
-		std::cout << clock() - clock0 << std::endl; // <-- END _ mod
+		std::cout << clock() - clockFrame << std::endl; // <-- END _ mod
 		
 		// Received
 		server->read(msg, idClient);
-		std::cout << clock() - clock0 << std::endl;
 		
 		// Answer
 		if(msg.isValide()) {
@@ -79,13 +75,12 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 				case BIN_GAZO: 
 				{	
 					try {
-						std::cout << clock() - clock0 << std::endl; // <-- BEG _ mod
-						cv::imencode(format, frameCam, buf, params);
-						std::cout << clock() - clock0 << std::endl; // <-- End _ mod
+						clock_t clockImdcode = clock();
+						cv::imencode(format, frameCam, buf, params); // <-- Need mod
+						std::cout << clock() - clockImdcode << std::endl; 
+						
 						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
-						std::cout << clock() - clock0 << std::endl;
 						server->write(msg, idClient);
-						std::cout << clock() - clock0 << std::endl;
 					}
 					catch(...) {
 						std::cout << "Exception throw" << std::endl;
@@ -93,9 +88,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 						server->write(msg, idClient);
 					}
 					
-
-					iFrameSend++;		
-					std::cout << "total=" << clock() - clock0 << std::endl;
+					iFrameSend++;
 				}
 				break;
 			}
