@@ -137,6 +137,7 @@ bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
 		}
 		
 		return false;
+	}
 	catch(...) {
 		std::cout << "Write error" << std::endl;
 		return false;
