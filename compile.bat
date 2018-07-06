@@ -23,7 +23,7 @@ g++ -c -std=gnu++11 -O2 -Wall ^
 	-ID:\Dev\Opencv3\opencv\build_minGW\install\include
 	
 
-if LINK==1 (
+if %LINK%==1 (
 	::Link sources
 	echo Link
 	cd ..\
@@ -37,7 +37,7 @@ if LINK==1 (
 		-lopencv_core341 -lopencv_imgproc341 -lopencv_highgui341 -lopencv_imgcodecs341 -lopencv_videoio341 -lm ^
 		-lws2_32
 		
-	if EXECUTE == 1 (
+	if %EXECUTE% == 1 (
 		::Execute software
 		cd Release
 		if exist %exename%.exe (	
