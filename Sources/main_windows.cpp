@@ -13,7 +13,7 @@ int main() {
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	
-	auto sock = managerConnection.connectTo(Socket::TCP, "192.168.128.46", 3000);
+	auto sock = managerConnection.connectTo(Socket::UDP, "192.168.128.46", 3000);
 	if(sock == nullptr)
 		return 0;
 	
