@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 set exename=client
 set folder=D:\Prog\C++Files\030_Sockets\EyeTracker\
 cd /d %folder%
@@ -7,29 +8,29 @@ cd /d %folder%
 if not exist Windows (
 	mkdir Windows
 )
-if not exist Windows/Objects (
+if not exist Windows\Objects (
 	mkdir Windows\Objects
 )
-if not exist Windows/Release (
+if not exist Windows\Release (
 	mkdir Windows\Release
 	
-	:: Put the dll
-	set cvBinPath=D:\Dev\Opencv3\opencv\build_minGW\install\x86\mingw\bin
-	set thisBinPath=Windows\Release
+	:: Put the dlls inside it
+	set cvBinPath=D:\Dev\Opencv3\opencv\build_minGW\install\x86\mingw\bin\
+	set thisBinPath=Windows\Release\
 	
-	Copy %cvBinPath%\libopencv_core341.dll %thisBinPath%
-	Copy %cvBinPath%\libopencv_highgui341.dll %thisBinPath%
-	Copy %cvBinPath%\libopencv_imgcodecs341.dll %thisBinPath%
-	Copy %cvBinPath%\libopencv_imgproc341.dll %thisBinPath%
-	Copy %cvBinPath%\libopencv_videoio341.dll %thisBinPath%
-	Copy %cvBinPath%\opencv_ffmpeg341.dll %thisBinPath%
+	Copy !cvBinPath!\libopencv_core341.dll !thisBinPath!
+	Copy !cvBinPath!\libopencv_highgui341.dll !thisBinPath!
+	Copy !cvBinPath!\libopencv_imgcodecs341.dll !thisBinPath!
+	Copy !cvBinPath!\libopencv_imgproc341.dll !thisBinPath!
+	Copy !cvBinPath!\libopencv_videoio341.dll !thisBinPath!
+	Copy !cvBinPath!\opencv_ffmpeg341.dll !thisBinPath!
 )
 
 :: Let's go
 cd Windows\
 
-set LINK=0
-set EXECUTE=0
+set LINK=1
+set EXECUTE=1
 
 ::Delete existing executable
 if exist Release\%exename%.exe (
