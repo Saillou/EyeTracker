@@ -76,13 +76,14 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 					try {
 						cv::imencode(format, frameCam, buf, params);
 						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+						server->write(msg, idClient);
 					}
 					catch(...) {
-						msg.clear();
 						std::cout << "Exception throw" << std::endl;
+						msg.clear();
+						server->write(msg, idClient);
 					}
 					
-					server->write(msg, idClient);
 
 					iFrameSend++;					
 				}
