@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Get update from github
+git pull EyeTracker master
+
 # Functions
 create() {
 	if [ ! -d $1 ]

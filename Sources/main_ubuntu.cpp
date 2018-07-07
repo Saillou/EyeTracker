@@ -207,7 +207,12 @@ int main() {
 
 	while(1) {
 		// Handle new clients coming
-		std::thread handleThread(handleClient, server, pCap);
+		try {
+			std::thread handleThread(handleClient, server, pCap);
+		}
+		catch(...) {
+			std::cout << "Thread failed" << std::endl;
+		}
 		std::cout << "." << std::endl;
 	}
 	
