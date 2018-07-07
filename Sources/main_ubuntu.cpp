@@ -110,7 +110,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 								TJ_FORMAT, 		// pixel format
 								&buff, 			// ptr to buffer, unsigned char **
 								&bufSize, 		// ptr to buffer size, unsigned long *
-								TJSAMP_GRAY,		// chrominace sub sampling
+								TJ_SUBSAMP,		// chrominace sub sampling
 								QUALITY, 		// quality, int
 								0 				// flags
 							);
