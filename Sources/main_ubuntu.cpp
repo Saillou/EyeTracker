@@ -156,54 +156,54 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 
 
 int main() {
-	// cv::VideoCapture camera(0);
-	// cv::VideoWriter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(640, 480), true);
+	cv::VideoCapture camera(0);
+	cv::VideoWriter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(640, 480), true);
 	
-	// if(!video.isOpened() || !camera.isOpened())
-		// return -1;
+	if(!video.isOpened() || !camera.isOpened())
+		return -1;
 	
-	// cv::Mat frameCam;
-	// clock_t lastClock = clock();
-	// size_t nbFrames 	= 0;
+	cv::Mat frameCam;
+	clock_t lastClock = clock();
+	size_t nbFrames 	= 0;
 	
-	// while(cv::waitKey(1) != 27) {
-		// camera >> frameCam;
+	while(cv::waitKey(1) != 27) {
+		camera >> frameCam;
 		
-		// if(frameCam.empty())
-			// continue;
+		if(frameCam.empty())
+			continue;
 		
-		// video << frameCam;
+		video << frameCam;
 		// cv::imshow("Frame", frameCam);
-		// nbFrames++;
+		nbFrames++;
 		
-		// clock_t thisClock = clock();
-		// if(thisClock - lastClock > 1000) {
-			// std::cout << "Fps: " << 1000000.0*nbFrames/(thisClock - lastClock) << std::endl;
-			// lastClock = thisClock;
-			// nbFrames = 0;
-		// }
-	// }
+		clock_t thisClock = clock();
+		if(thisClock - lastClock > 1000) {
+			std::cout << "Fps: " << 1000000.0*nbFrames/(thisClock - lastClock) << std::endl;
+			lastClock = thisClock;
+			nbFrames = 0;
+		}
+	}
 	
-	// return 0;
+	return 0;
 	
 	
 	// Try to open the cam
-	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
-	if(!pCap->isOpened())
-		pCap.reset();
+	// std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
+	// if(!pCap->isOpened())
+		// pCap.reset();
 	
-	// Create server TCP
-	ManagerConnection managerConnection;
-	managerConnection.initialize();
-	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
+	// // Create server TCP
+	// ManagerConnection managerConnection;
+	// managerConnection.initialize();
+	// auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
 
-	// Handle client until sigint
-	std::cout << "Wait for clients" << std::endl;
-	while(1) {
-		// Wait until client pop
-		handleClient(server->waitClient(), server, pCap);
-	}
+	// // Handle client until sigint
+	// std::cout << "Wait for clients" << std::endl;
+	// while(1) {
+		// // Wait until client pop
+		// handleClient(server->waitClient(), server, pCap);
+	// }
 	
-	return 0;	
+	// return 0;	
 }
 
