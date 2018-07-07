@@ -61,7 +61,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 		}
 		
 		// Check validity
-		if(frameCam.isEmpty())
+		if(frameCam.empty())
 			continue;
 		
 		// Adapt size
