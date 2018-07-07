@@ -96,7 +96,7 @@ int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame
 		switch(msg.getAction()) {
 			// Client quit
 			case BIN_QUIT:
-				run = false;
+				G_client = false;
 			break;
 			
 			// Frame info asked
