@@ -20,7 +20,7 @@ using namespace Protocole;
 void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
 	const int QUALITY = 80;
 	const bool GRAY 	= false;
-	const bool RESIZE = false;
+	const bool RESIZE = true;
 	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor 	= tjInitCompress();
@@ -156,22 +156,46 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 
 
 int main() {
-	// Try to open the cam
 	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
 	if(!pCap->isOpened())
-		pCap.reset();
+		return -1;
 	
-	// Create server TCP
-	ManagerConnection managerConnection;
-	managerConnection.initialize();
-	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
-
-	// Handle client until sigint
-	std::cout << "Wait for clients" << std::endl;
-	while(1) {
-		// Wait until client pop
-		handleClient(server->waitClient(), server, pCap);
+	cv::Mat frameCam;
+	clock_t lastClock 	= clock();
+	size_t nbFrames 		= 0;
+	
+	while(cv::waitKey(1) != 27) {
+		*ptrCap >> frameCam;
+		cv::imshow("Frame", frameCam);
+		nbFrames++;
+		
+		clock_t thisClock = clock();
+		if(thisClock - lastClock > 1000) {
+			std::cout << "Fps: " << 1000.0*nbFrames/(thisClock - lastClock) << std::endl;
+			lastClock = thisClock;
+			nbFrames = 0;
+		}
 	}
+	
+	return 0;
+	
+	
+	// // Try to open the cam
+	// std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
+	// if(!pCap->isOpened())
+		// pCap.reset();
+	
+	// // Create server TCP
+	// ManagerConnection managerConnection;
+	// managerConnection.initialize();
+	// auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
+
+	// // Handle client until sigint
+	// std::cout << "Wait for clients" << std::endl;
+	// while(1) {
+		// // Wait until client pop
+		// handleClient(server->waitClient(), server, pCap);
+	// }
 	
 	return 0;	
 }
