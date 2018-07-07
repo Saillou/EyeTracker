@@ -37,7 +37,7 @@ int handleRecord(const cv::String pathVideo ,std::shared_ptr<cv::Mat> pFrame) {
 	
 	while(G_record) {
 		if((clock() - clock0) / 1000 >= Ts) {
-			std::cout << clock() / 1000000.0 << "s." std::endl;
+			std::cout << clock() / 1000000.0 << "s." << std::endl;
 			// G_frameMutex.lock();
 			// frame = pFrame->clone();
 			// G_frameMutex.unlock();
@@ -46,7 +46,7 @@ int handleRecord(const cv::String pathVideo ,std::shared_ptr<cv::Mat> pFrame) {
 		}
 	}
 	
-	video.release();
+	// video.release();
 	return 0;
 }
 
