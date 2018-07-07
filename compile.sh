@@ -108,7 +108,7 @@ if [ $? == 0 ]
 fi
 
 echo "Compile sources"
-g++ -c -std=c++1y -O2 \
+g++ -c -std=gnu++11 -O2 \
 	-Wall \
 	$PathSources \
 	-I/usr/Local/include/  \
