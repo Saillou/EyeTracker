@@ -38,7 +38,7 @@ int main() {
 		const size_t CHANNEL 	= Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second);
 		
 		cv::Mat frame 			= cv::Mat::zeros(HEIGHT, WIDTH, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
-		cv::Mat frameResized = cv::Mat::zeros(480, 640, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
+		cv::Mat frameRes 		= cv::Mat::zeros(480, 640, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
 		clock_t lastClock 	= clock();
 		size_t nbFrames 		= 0;
 		
@@ -62,8 +62,8 @@ int main() {
 						else 
 							tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, CHANNEL == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
 						
-						cv::resize(frame, frameResized, frameResized.size());
-						cv::imshow("frame", frameResized);
+						cv::resize(frame, frameRes, frameRes.size());
+						cv::imshow("frame", frameRes);
 						nbFrames++;
 					}
 					catch(cv::Exception& e) {
