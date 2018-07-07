@@ -19,6 +19,7 @@ using namespace Protocole;
 
 void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
 	const int QUALITY = 80;
+	const bool GRAY 	= true;
 	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor 	= tjInitCompress();
@@ -37,7 +38,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	
 	// Define frame expected
 	cv::Mat frameCam 		= cv::Mat::zeros(480, 640, CV_8UC3);
-	cv::Mat frameCamResized	= cv::Mat::zeros(240, 320, CV_8UC1);
+	cv::Mat frameCamResized	= cv::Mat::zeros(240, 320, GRAY ? CV_8UC1 : CV_8UC3);
 	const cv::Point center 	= cv::Point(frameCam.cols/2, frameCam.rows/2);
 	const int diameterMax 	= 0.25*frameCam.rows;
 	size_t iFrameSend = 0;
@@ -47,12 +48,13 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	while(run) {
 		// Get the frame
 		if(ptrCap == nullptr) {
-			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, CV_8UC1);
+			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, GRAY ? CV_8UC1 : CV_8UC3);
 			cv::circle(frameCam, center, diameterMax*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1);
 		}
 		else {
 			*ptrCap >> frameCam;
-			cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
+			if(GRAY)
+				cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
 		cv::resize(frameCam, frameCamResized, frameCamResized.size());
 		
@@ -95,7 +97,9 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 							);
 							msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
 						}
-						else {							
+						else {	
+							const int TJ_FORMAT = GRAY ? TJPF_GRAY : TJPF_BGR;
+							
 							tjCompress2(
 								_jpegCompressor, 
 								frameCamResized.data, 	// ptr to data, const uchar *

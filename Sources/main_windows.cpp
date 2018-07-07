@@ -63,7 +63,7 @@ int main() {
 							tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, CHANNEL == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
 						
 						cv::resize(frame, frameRes, frameRes.size());
-						cv::imshow("frame", frameRes);
+						cv::imshow("Frame(res)", frameRes);
 						nbFrames++;
 					}
 					catch(cv::Exception& e) {
