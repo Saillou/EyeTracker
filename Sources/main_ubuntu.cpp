@@ -156,58 +156,60 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 
 
 int main() {
-	cv::Mat frameCam;
-	cv::Mat frameCamResized(240, 320, CV_8UC3);
+	// cv::Mat frameCam;
+	// cv::Mat frameCamResized(240, 320, CV_8UC3);
 	
-	cv::VideoCapture camera(0);
-	cv::VideoWriter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(frameCamResized.cols, frameCamResized.rows), true);
+	// cv::VideoCapture camera(0);
+	// cv::VideoWriter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(frameCamResized.cols, frameCamResized.rows), true);
 	
-	if(!video.isOpened() || !camera.isOpened())
-		return -1;
+	// if(!video.isOpened() || !camera.isOpened())
+		// return -1;
 	
-	clock_t lastClock = clock();
-	size_t nbFrames 	= 0;
+	// clock_t lastClock = clock();
+	// size_t nbFrames 	= 0;
 	
-	while(cv::waitKey(1) != 27) {
-		camera >> frameCam;
-		if(frameCam.empty())
-			continue;
+	// while(cv::waitKey(1) != 27) {
+		// camera >> frameCam;
+		// if(frameCam.empty())
+			// continue;
 		
-		cv::resize(frameCam, frameCamResized, frameCamResized.size());
+		// cv::resize(frameCam, frameCamResized, frameCamResized.size());
 		
 		
-		video << frameCamResized;
-		cv::imshow("Frame", frameCamResized);
-		nbFrames++;
+		// video << frameCamResized;
+		// cv::imshow("Frame", frameCamResized);
+		// nbFrames++;
 		
-		clock_t thisClock = clock();
-		if(thisClock - lastClock > 1000) {
-			std::cout << "Fps: " << 1000000.0*nbFrames/(thisClock - lastClock) << std::endl;
-			lastClock = thisClock;
-			nbFrames = 0;
-		}
-	}
+		// clock_t thisClock = clock();
+		// if(thisClock - lastClock > 1000) {
+			// std::cout << "Fps: " << 1000000.0*nbFrames/(thisClock - lastClock) << std::endl;
+			// lastClock = thisClock;
+			// nbFrames = 0;
+		// }
+	// }
 	
-	return 0;
+	// return 0;
 	
 	
 	// Try to open the cam
-	// std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
-	// if(!pCap->isOpened())
-		// pCap.reset();
+	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
+	if(!pCap->isOpened())
+		pCap.reset();
 	
-	// // Create server TCP
-	// ManagerConnection managerConnection;
-	// managerConnection.initialize();
-	// auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
+	cv::namedWindow("Main", CV_WINDOW_NORMAL);
+	
+	// Create server TCP
+	ManagerConnection managerConnection;
+	managerConnection.initialize();
+	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
 
-	// // Handle client until sigint
-	// std::cout << "Wait for clients" << std::endl;
-	// while(1) {
-		// // Wait until client pop
-		// handleClient(server->waitClient(), server, pCap);
-	// }
+	// Handle client until sigint
+	std::cout << "Wait for clients" << std::endl;
+	while(cv::waitKey(1) != 27) {
+		// Wait until client pop
+		handleClient(server->waitClient(), server, pCap);
+	}
 	
-	// return 0;	
+	return 0;	
 }
 
