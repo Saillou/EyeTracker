@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+
+#include <mutex>
 #include <thread>
 
 #include <turbojpeg.h>
@@ -13,15 +15,16 @@
 #include "Dk/Protocole.hpp"
 #include "Dk/ManagerConnection.hpp"
 
-#define MAXPENDING 	5
-#define SOCKET_PORT 3000
+const int MAXPENDING 	= 1;
+const int SOCKET_PORT 	= 3000;
 
 using namespace Protocole;
 
-void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
+std::mutex G_frameMutex;
+
+void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame) {
+	// Params encoding
 	const int QUALITY = 80;
-	const bool GRAY 	= false;
-	const bool RESIZE = true;
 	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor 	= tjInitCompress();
@@ -41,44 +44,14 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 	std::cout << "Handle new client" << std::endl;
 	BinMessage msg;
 	
-	// Define frame expected
-	cv::Mat frameCam 				= cv::Mat::zeros(480, 640, CV_8UC3);
-	cv::Mat frameCamResized	= RESIZE ? cv::Mat::zeros(240, 320, GRAY ? CV_8UC1 : CV_8UC3) : cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
-	
-	// Animation parameters
-	const cv::Point center 		= cv::Point(frameCam.cols/2, frameCam.rows/2);
-	const int diameterMax 		= frameCam.rows/4;
-	size_t iFrameSend 			= 0;
-	
 	// -- Handle client --
 	bool run = true;
-	while(run) {
-		// Get the frame [If no videoCapture => generate an animation]
-		if(ptrCap == nullptr) {
-			frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, GRAY ? CV_8UC1 : CV_8UC3);
-			cv::circle(frameCam, center, diameterMax*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1);
-		}
-		else {
-			*ptrCap >> frameCam;
-			if(GRAY && frameCam.channels() == 3)
-				cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
-		}
-		
-		// Check validity
-		if(frameCam.empty())
-			continue;
-		
-		// Adapt size
-		if(RESIZE)
-			cv::resize(frameCam, frameCamResized, frameCamResized.size());
-		else
-			frameCamResized = frameCam;
-		
+	do {	
 		// Received
 		server->read(msg, idClient);
 		
 		// Answer
-		if(msg.isValide()) {
+		if(msg.isValide()) {			
 			switch(msg.getAction()) {
 				// Client quit
 				case BIN_QUIT:
@@ -91,10 +64,12 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 				case BIN_INFO:
 				{ 
 					CmdMessage cmd;
-					cmd.addCommand(CMD_HEIGHT, 	std::to_string(frameCamResized.rows));
-					cmd.addCommand(CMD_WIDTH, 	std::to_string(frameCamResized.cols));
-					cmd.addCommand(CMD_CHANNEL,	std::to_string(frameCamResized.channels()));
-					
+					G_frameMutex.lock();
+					cmd.addCommand(CMD_HEIGHT, 	std::to_string(pFrame->rows));
+					cmd.addCommand(CMD_WIDTH, 	std::to_string(pFrame->cols));
+					cmd.addCommand(CMD_CHANNEL,	std::to_string(pFrame->channels()));
+					G_frameMutex.unlock();
+
 					msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
 					server->write(msg, idClient);
 				}
@@ -105,32 +80,33 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 				{	
 					try {
 						// Compress to jpg with turbojpeg or opencv
+						G_frameMutex.lock();
 						if(_jpegCompressor == NULL) {
 							cv::imencode(
 								format, 		// Extension, std::string
-								frameCamResized,
+								*pFrame,
 								buf, 			// Data out, vector<char>
 								params		// Jpeg copmression, vector<int>
 							);
+							G_frameMutex.unlock();
 							msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
 						}
 						else {	
-							const int TJ_FORMAT = GRAY ? TJPF_GRAY : TJPF_BGR;
-							const int TJ_SUBSAMP = GRAY ? TJSAMP_GRAY : TJSAMP_420;
-							
+							G_frameMutex.lock();
 							tjCompress2(
 								_jpegCompressor, 
-								frameCamResized.data, 	// ptr to data, const uchar *
-								frameCamResized.cols, 	// width
-								TJPAD(frameCamResized.cols * tjPixelSize[TJ_FORMAT]), // bytes per line
-								frameCamResized.rows,	// height
-								TJ_FORMAT, 		// pixel format
+								pFrame->data, 	// ptr to data, const uchar *
+								pFrame->cols, 	// width
+								TJPAD(fpFrame->cols * tjPixelSize[TJPF_BGR]), // bytes per line
+								pFrame->rows,	// height
+								TJPF_BGR, 		// pixel format
 								&buff, 			// ptr to buffer, unsigned char **
 								&bufSize, 		// ptr to buffer size, unsigned long *
-								TJ_SUBSAMP,		// chrominace sub sampling
+								TJSAMP_420,		// chrominace sub sampling
 								QUALITY, 		// quality, int
 								0 					// flags
 							);
+							G_frameMutex.unlock();
 							msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
 						}
 						
@@ -147,9 +123,8 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 				}
 				break;
 			}
-
 		} // Msg.valide()
-	} // run
+	} while(run);
 	
 	server->closeSocket(idClient);
 	std::cout << "Client disconnected." << std::endl;
@@ -194,23 +169,40 @@ int main() {
 	
 	// return 0;
 	
-	
-	// Try to open the cam
-	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
-	if(!pCap->isOpened())
-		pCap.reset();
-	
 	// Create server TCP
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
+	
+	// Create frame dispatched
+	std::shared_ptr<cv::Mat> pFrameResized = std::make_shared<cv::Mat>(240, 320, CV_8UC3, cv::Scalar::all(0));
+	
+	// Try to open the cam
+	std::unique_ptr<cv::VideoCapture> pCap = std::make_unique<cv::VideoCapture>(0);
+	if(pCap == nullptr || !pCap->isOpened())
+		return -1;
 
 	// Handle one client
-	std::thread handleThread(handleClient, server, pCap);
+	std::thread handleThread(handleClient, server, pFrameResized);
 	
-	while(cv::waitKey(1000) != 27) {
+	while(cv::waitKey(1) != 27) {
+		// Acquire the frame
+		*pCap >> frameCam;
+		
+		// Check validity
+		if(frameCam.empty())
+			continue;
+		
+		// Adapt size
+		G_frameMutex.lock();
+		cv::resize(frameCam, *pFrameResized, pFrameResized->size());
+		G_frameMutex.unlock();
+		
 		std::cout << "." << std::endl;
 	}
+	
+	// Wait to finish with the client
+	handleThread.join();
 	
 	return 0;	
 }
