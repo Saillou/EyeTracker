@@ -197,13 +197,13 @@ int main() {
 		cv::resize(frameCam, *pFrameResized, pFrameResized->size());
 		G_frameMutex.unlock();
 		
-		cv::imshow("");
+		cv::imshow("frame", *pFrameResized);
 		
 		std::cout << "." << std::endl;
 	}
 	
 	// Wait to finish with the client
-	handleThread.join();
+	// handleThread.join();
 	
 	return 0;	
 }
