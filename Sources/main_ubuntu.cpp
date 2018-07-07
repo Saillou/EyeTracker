@@ -99,14 +99,15 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 						}
 						else {	
 							const int TJ_FORMAT = GRAY ? TJPF_GRAY : TJPF_BGR;
+							const int TJ_SUBSAMP = GRAY ? TJSAMP_GRAY : TJSAMP_420;
 							
 							tjCompress2(
 								_jpegCompressor, 
 								frameCamResized.data, 	// ptr to data, const uchar *
 								frameCamResized.cols, 	// width
-								TJPAD(frameCamResized.cols * tjPixelSize[TJPF_GRAY]), // bytes per line
+								TJPAD(frameCamResized.cols * tjPixelSize[TJ_FORMAT]), // bytes per line
 								frameCamResized.rows,	// height
-								TJPF_GRAY, 		// pixel format
+								TJ_FORMAT, 		// pixel format
 								&buff, 			// ptr to buffer, unsigned char **
 								&bufSize, 		// ptr to buffer size, unsigned long *
 								TJSAMP_GRAY,		// chrominace sub sampling
