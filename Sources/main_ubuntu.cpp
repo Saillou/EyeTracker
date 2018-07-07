@@ -181,7 +181,7 @@ int main() {
 
 	// Handle one client
 	std::thread threadClient(handleClient, server, pFrameResized);
-	std::thread threadRecord(handleRecord, "Record_.avi", pFrameResized);
+	std::thread threadRecord(handleRecord, "Record.avi", pFrameResized);
 	
 	while(cv::waitKey(1) != 27) {
 		// Acquire the frame
