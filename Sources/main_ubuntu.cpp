@@ -28,35 +28,27 @@ std::mutex G_frameMutex;
 int handleRecord(const cv::String pathVideo ,std::shared_ptr<cv::Mat> pFrame) {
 	const int FPS = 30;
 	const double Ts = 1000.0/FPS; // ms.
-	// cv::Mat frame;
 	
-	// G_frameMutex.lock();
-	// cv::VideoWriter video(pathVideo, CV_FOURCC('M', 'P', '4', '2'), FPS, cv::Size(pFrame->cols, pFrame->rows), true);
-	// G_frameMutex.unlock();
+	G_frameMutex.lock();
+	cv::VideoWriter video(pathVideo, CV_FOURCC('M', 'P', '4', '2'), FPS, cv::Size(pFrame->cols, pFrame->rows), true);
+	G_frameMutex.unlock();
 	
-	clock_t clock0 = clock();
-	clock_t clockT = clock0;
-	int nbFrame = 0;
+	clock_t clockT = clock();
+	cv::Mat frame;
 	
 	while(G_record) {
 		if((clock() - clockT) / 1000 >= Ts) {
-			nbFrame++;
 			clockT = clock();
 			
-			if(nbFrame == 30) {
-				nbFrame = 0;
-				std::cout << (clockT-clock0) / 1000.0 << "ms." << std::endl;
-				clock0 = clockT;
-			}
-			// G_frameMutex.lock();
-			// frame = pFrame->clone();
-			// G_frameMutex.unlock();
+			G_frameMutex.lock();
+			frame = pFrame->clone();
+			G_frameMutex.unlock();
 			
-			// video << frame;
+			video << frame;
 		}
 	}
 	
-	// video.release();
+	video.release();
 	return 0;
 }
 
