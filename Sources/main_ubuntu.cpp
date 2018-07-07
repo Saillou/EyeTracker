@@ -182,7 +182,7 @@ int main() {
 		return -1;
 
 	// Handle one client
-	std::thread handleThread(handleClient, server, pFrameResized);
+	// std::thread handleThread(handleClient, server, pFrameResized);
 	
 	while(cv::waitKey(1) != 27) {
 		// Acquire the frame
@@ -196,6 +196,8 @@ int main() {
 		G_frameMutex.lock();
 		cv::resize(frameCam, *pFrameResized, pFrameResized->size());
 		G_frameMutex.unlock();
+		
+		cv::imshow("");
 		
 		std::cout << "." << std::endl;
 	}
