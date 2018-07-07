@@ -108,7 +108,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 								_jpegCompressor, 
 								frameCamResized.data, 	// ptr to data, const uchar *
 								frameCamResized.cols, 	// width
-								frameCamResized.bytesPerLine(), 
+								TJPAD(frameCamResized.cols * tjPixelSize[TJ_FORMAT]), // bytes per line
 								frameCamResized.rows,	// height
 								TJ_FORMAT, 		// pixel format
 								&buff, 			// ptr to buffer, unsigned char **
