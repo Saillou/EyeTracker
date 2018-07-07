@@ -34,7 +34,7 @@ int main() {
 		CmdMessage cmd(Message::To_string(msg.getData()));
 		
 		const size_t WIDTH 		= Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second);
-		const size_t HEIGHT 	= Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second);
+		const size_t HEIGHT 		= Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second);
 		const size_t CHANNEL 	= Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second);
 		
 		cv::Mat frame 			= cv::Mat::zeros(HEIGHT, WIDTH, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);

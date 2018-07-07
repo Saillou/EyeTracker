@@ -81,7 +81,6 @@ int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame
 		
 		// Answer
 		if(!msg.isValide()) {
-			
 			continue;
 		}
 		
@@ -181,7 +180,7 @@ int main() {
 
 	// Handle one client
 	std::thread threadClient(handleClient, server, pFrameResized);
-	std::thread threadRecord(handleRecord, "Record.avi", pFrameResized);
+	// std::thread threadRecord(handleRecord, "Record.avi", pFrameResized);
 	
 	while(cv::waitKey(1) != 27) {
 		// Acquire the frame
@@ -203,8 +202,8 @@ int main() {
 	}
 	
 	// Finish record
-	G_record = false;
-	threadRecord.join();
+	// G_record = false;
+	// threadRecord.join();
 	
 	// Finish client
 	G_client = false;
