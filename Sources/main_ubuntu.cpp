@@ -22,6 +22,7 @@ const int SOCKET_PORT 	= 3000;
 using namespace Protocole;
 
 std::atomic<bool> G_record(true);
+std::atomic<bool> G_client(true);
 std::mutex G_frameMutex;
 
 int handleRecord(const cv::String pathVideo ,std::shared_ptr<cv::Mat> pFrame) {
@@ -82,7 +83,6 @@ int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame
 	BinMessage msg;
 	
 	// -- Handle client --
-	bool run = true;
 	do {	
 		// Received
 		server->read(msg, idClient);
@@ -160,7 +160,7 @@ int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame
 			}
 			break;
 		} // getAction()
-	} while(run);
+	} while(G_client);
 	
 	server->closeSocket(idClient);
 	std::cout << "Client disconnected." << std::endl;
@@ -210,14 +210,13 @@ int main() {
 		}
 	}
 	
-	// Wait client to finish
-	// [To do: send message OU atomic_value]
-	threadClient.join();
-	
 	// Finish record
 	G_record = false;
-	std::cout << G_record << std::endl;
 	threadRecord.join();
+	
+	// Finish client
+	G_client = false;
+	threadClient.join();
 	
 	return 0;	
 }
