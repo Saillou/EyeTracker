@@ -19,7 +19,8 @@ using namespace Protocole;
 
 void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
 	const int QUALITY = 80;
-	const bool GRAY 	= true;
+	const bool GRAY 	= false;
+	const bool RESIZE = false;
 	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor 	= tjInitCompress();
@@ -38,7 +39,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	
 	// Define frame expected
 	cv::Mat frameCam 				= cv::Mat::zeros(480, 640, CV_8UC3);
-	cv::Mat frameCamResized	= cv::Mat::zeros(240, 320, GRAY ? CV_8UC1 : CV_8UC3);
+	cv::Mat frameCamResized	= RESIZE ? cv::Mat::zeros(240, 320, GRAY ? CV_8UC1 : CV_8UC3) : cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
 	
 	// Animation parameters
 	const cv::Point center 		= cv::Point(frameCam.cols/2, frameCam.rows/2);
@@ -58,7 +59,16 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 			if(GRAY && frameCam.channels() == 3)
 				cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
 		}
-		cv::resize(frameCam, frameCamResized, frameCamResized.size());
+		
+		// Check validity
+		if(frame.isEmpty())
+			continue;
+		
+		// Adapt size
+		if(RESIZE)
+			cv::resize(frameCam, frameCamResized, frameCamResized.size());
+		else
+			frameCamResized = frameCam;
 		
 		// Received
 		server->read(msg, idClient);
@@ -119,6 +129,8 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 							);
 							msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
 						}
+						
+						// Write a message, even if encodage failed (it will be null then).
 						server->write(msg, idClient);
 					}
 					catch(...) {
@@ -132,8 +144,8 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 				break;
 			}
 
-		}
-	}
+		} // Msg.valide()
+	} // run
 	
 	server->closeSocket(idClient);
 	std::cout << "Client disconnected." << std::endl;
