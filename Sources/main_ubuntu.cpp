@@ -167,10 +167,11 @@ int main() {
 	size_t nbFrames 	= 0;
 	
 	while(cv::waitKey(1) != 27) {
+		camera >> frameCam;
+		
 		if(frameCam.empty())
 			continue;
 		
-		camera >> frameCam;
 		video << frameCam;
 		cv::imshow("Frame", frameCam);
 		nbFrames++;
