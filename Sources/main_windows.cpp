@@ -60,7 +60,7 @@ int main() {
 						if(_jpegDecompressor == NULL)
 							cv::imdecode(msg.getData(), CHANNEL == 1 ? CV_LOAD_IMAGE_GRAYSCALE : CV_LOAD_IMAGE_COLOR, &frame);
 						else 
-							tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, TJPF_GRAY, 0);
+							tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, CHANNEL == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
 						
 						cv::resize(frame, frameResized, frameResized.size());
 						cv::imshow("frame", frameResized);
