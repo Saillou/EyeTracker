@@ -126,6 +126,7 @@ g++ -o $OutputName \
 	$PathObjects \
 	-L/usr/Local/lib/ \
 	-L/usr/Local/lib/libjpeg/ \
+	-pthread \
 	-lopencv_core \
 	-lturbojpeg \
 	-lopencv_highgui \

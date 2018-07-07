@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <thread>
 
 #include <turbojpeg.h>
 
@@ -17,7 +18,7 @@
 
 using namespace Protocole;
 
-void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
+void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
 	const int QUALITY = 80;
 	const bool GRAY 	= false;
 	const bool RESIZE = true;
@@ -33,7 +34,9 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 	const std::string format = ".jpg";
 		
 	// ---------------------------- 
-					
+	// Wait for client
+	int idClient = server->waitClient();
+	
 	std::cout << "Handle new client" << std::endl;
 	BinMessage msg;
 	
@@ -196,8 +199,6 @@ int main() {
 	if(!pCap->isOpened())
 		pCap.reset();
 	
-	cv::namedWindow("Main", CV_WINDOW_NORMAL);
-	
 	// Create server TCP
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
@@ -205,9 +206,10 @@ int main() {
 
 	// Handle client until sigint
 	std::cout << "Wait for clients" << std::endl;
-	while(cv::waitKey(1) != 27) {
+	while(1) {
 		// Wait until client pop
-		handleClient(server->waitClient(), server, pCap);
+		std::thread handleThread(handleClient, server, pCap);
+		std::cout << "." << std::endl;
 	}
 	
 	return 0;	
