@@ -157,7 +157,7 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 
 int main() {
 	cv::VideoCapture camera(0);
-	cv::VideoWritter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(640, 480), true);
+	cv::VideoWriter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(640, 480), true);
 	
 	if(!video.isOpened() || !camera.isOpened())
 		return -1;
