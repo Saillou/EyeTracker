@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <mutex>
+#include <atomic>
 #include <thread>
 
 #include <turbojpeg.h>
@@ -20,9 +21,36 @@ const int SOCKET_PORT 	= 3000;
 
 using namespace Protocole;
 
+std::atomic<bool> G_record(true);
 std::mutex G_frameMutex;
 
-void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame) {
+int handleRecord(const cv::String pathVideo ,std::shared_ptr<cv::Mat> pFrame) {
+	const int FPS = 30;
+	const double Ts = 1000.0/FPS; // ms.
+	// cv::Mat frame;
+	
+	// G_frameMutex.lock();
+	// cv::VideoWriter video(pathVideo, CV_FOURCC('M', 'P', '4', '2'), FPS, cv::Size(pFrame->cols, pFrame->rows), true);
+	// G_frameMutex.unlock();
+	
+	clock_t clock0 = 0;
+	
+	while(G_record) {
+		if((clock() - clock0) / 1000 >= Ts) {
+			std::cout << clock() / 1000000.0 << "s." std::endl;
+			// G_frameMutex.lock();
+			// frame = pFrame->clone();
+			// G_frameMutex.unlock();
+			
+			// video << frame;
+		}
+	}
+	
+	video.release();
+	return 0;
+}
+
+int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame) {
 	// Params encoding
 	const int QUALITY = 80;
 	
@@ -51,77 +79,78 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFram
 		server->read(msg, idClient);
 		
 		// Answer
-		if(msg.isValide()) {			
-			switch(msg.getAction()) {
-				// Client quit
-				case BIN_QUIT:
-				{ 
-					run = false;
-				}
-				break;
-				
-				// Frame info asked
-				case BIN_INFO:
-				{ 
-					CmdMessage cmd;
-					G_frameMutex.lock();
-					cmd.addCommand(CMD_HEIGHT, 	std::to_string(pFrame->rows));
-					cmd.addCommand(CMD_WIDTH, 	std::to_string(pFrame->cols));
-					cmd.addCommand(CMD_CHANNEL,	std::to_string(pFrame->channels()));
-					G_frameMutex.unlock();
+		if(!msg.isValide()) {
+			
+			continue;
+		}
+		
+		switch(msg.getAction()) {
+			// Client quit
+			case BIN_QUIT:
+				run = false;
+			break;
+			
+			// Frame info asked
+			case BIN_INFO:
+			{ 
+				CmdMessage cmd;
+				G_frameMutex.lock();
+				cmd.addCommand(CMD_HEIGHT, 	std::to_string(pFrame->rows));
+				cmd.addCommand(CMD_WIDTH, 	std::to_string(pFrame->cols));
+				cmd.addCommand(CMD_CHANNEL,	std::to_string(pFrame->channels()));
+				G_frameMutex.unlock();
 
-					msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
+				msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
+				server->write(msg, idClient);
+			}
+			break;
+			
+			// Send a frame
+			case BIN_GAZO: 
+			{	
+				try {
+					// Compress to jpg with turbojpeg or opencv
+					if(_jpegCompressor == NULL) {
+						G_frameMutex.lock();
+						cv::imencode(
+							format, 		// Extension, std::string
+							*pFrame,
+							buf, 			// Data out, vector<char>
+							params		// Jpeg copmression, vector<int>
+						);
+						G_frameMutex.unlock();
+						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+					}
+					else {	
+						G_frameMutex.lock();
+						tjCompress2(
+							_jpegCompressor, 
+							pFrame->data, 	// ptr to data, const uchar *
+							pFrame->cols, 	// width
+							TJPAD(pFrame->cols * tjPixelSize[TJPF_BGR]), // bytes per line
+							pFrame->rows,	// height
+							TJPF_BGR, 		// pixel format
+							&buff, 			// ptr to buffer, unsigned char **
+							&bufSize, 		// ptr to buffer size, unsigned long *
+							TJSAMP_420,		// chrominace sub sampling
+							QUALITY, 		// quality, int
+							0 					// flags
+						);
+						G_frameMutex.unlock();
+						msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
+					}
+					
+					// Write a message, even if encodage failed (it will be null then).
 					server->write(msg, idClient);
 				}
-				break;
-				
-				// Send a frame
-				case BIN_GAZO: 
-				{	
-					try {
-						// Compress to jpg with turbojpeg or opencv
-						if(_jpegCompressor == NULL) {
-							G_frameMutex.lock();
-							cv::imencode(
-								format, 		// Extension, std::string
-								*pFrame,
-								buf, 			// Data out, vector<char>
-								params		// Jpeg copmression, vector<int>
-							);
-							G_frameMutex.unlock();
-							msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
-						}
-						else {	
-							G_frameMutex.lock();
-							tjCompress2(
-								_jpegCompressor, 
-								pFrame->data, 	// ptr to data, const uchar *
-								pFrame->cols, 	// width
-								TJPAD(pFrame->cols * tjPixelSize[TJPF_BGR]), // bytes per line
-								pFrame->rows,	// height
-								TJPF_BGR, 		// pixel format
-								&buff, 			// ptr to buffer, unsigned char **
-								&bufSize, 		// ptr to buffer size, unsigned long *
-								TJSAMP_420,		// chrominace sub sampling
-								QUALITY, 		// quality, int
-								0 					// flags
-							);
-							G_frameMutex.unlock();
-							msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
-						}
-						
-						// Write a message, even if encodage failed (it will be null then).
-						server->write(msg, idClient);
-					}
-					catch(...) {
-						std::cout << "Exception throw" << std::endl;
-						msg.clear();
-						server->write(msg, idClient);
-					}
+				catch(...) {
+					std::cout << "Exception throw" << std::endl;
+					msg.clear();
+					server->write(msg, idClient);
 				}
-				break;
 			}
-		} // Msg.valide()
+			break;
+		} // getAction()
 	} while(run);
 	
 	server->closeSocket(idClient);
@@ -129,44 +158,12 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFram
 	
 	tjFree(buff);
 	tjDestroy(_jpegCompressor);
+	
+	return 0;
 }
 
 
 int main() {
-	// cv::Mat frameCam;
-	// cv::Mat frameCamResized(240, 320, CV_8UC3);
-	
-	// cv::VideoCapture camera(0);
-	// cv::VideoWriter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(frameCamResized.cols, frameCamResized.rows), true);
-	
-	// if(!video.isOpened() || !camera.isOpened())
-		// return -1;
-	
-	// clock_t lastClock = clock();
-	// size_t nbFrames 	= 0;
-	
-	// while(cv::waitKey(1) != 27) {
-		// camera >> frameCam;
-		// if(frameCam.empty())
-			// continue;
-		
-		// cv::resize(frameCam, frameCamResized, frameCamResized.size());
-		
-		
-		// video << frameCamResized;
-		// cv::imshow("Frame", frameCamResized);
-		// nbFrames++;
-		
-		// clock_t thisClock = clock();
-		// if(thisClock - lastClock > 1000) {
-			// std::cout << "Fps: " << 1000000.0*nbFrames/(thisClock - lastClock) << std::endl;
-			// lastClock = thisClock;
-			// nbFrames = 0;
-		// }
-	// }
-	
-	// return 0;
-	
 	// Create server TCP
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
@@ -182,7 +179,8 @@ int main() {
 		return -1;
 
 	// Handle one client
-	std::thread handleThread(handleClient, server, pFrameResized);
+	std::thread threadClient(handleClient, server, pFrameResized);
+	std::thread threadRecord(handleRecord, "Record.avi", pFrameResized);
 	
 	while(cv::waitKey(1) != 27) {
 		// Acquire the frame
@@ -203,8 +201,13 @@ int main() {
 		}
 	}
 	
-	// Wait to finish with the client
-	// handleThread.join();
+	// Wait client to finish
+	// [To do: send message OU atomic_value]
+	threadClient.join();
+	
+	// Finish record
+	G_record = false;
+	threadRecord.join();
 	
 	return 0;	
 }
