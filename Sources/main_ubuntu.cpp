@@ -80,8 +80,8 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFram
 				{	
 					try {
 						// Compress to jpg with turbojpeg or opencv
-						G_frameMutex.lock();
 						if(_jpegCompressor == NULL) {
+							G_frameMutex.lock();
 							cv::imencode(
 								format, 		// Extension, std::string
 								*pFrame,
@@ -195,8 +195,12 @@ int main() {
 		// Adapt size
 		G_frameMutex.lock();
 		cv::resize(frameCam, *pFrameResized, pFrameResized->size());
-		cv::imshow("frame", *pFrameResized);
 		G_frameMutex.unlock();
+		
+		if (G_frameMutex.try_lock()) {
+			cv::imshow("frame", *pFrameResized);
+			G_frameMutex.unlock();
+		}
 	}
 	
 	// Wait to finish with the client
