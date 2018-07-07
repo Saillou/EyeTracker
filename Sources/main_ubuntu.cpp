@@ -165,7 +165,7 @@ int main() {
 	size_t nbFrames 		= 0;
 	
 	while(cv::waitKey(1) != 27) {
-		*ptrCap >> frameCam;
+		*pCap >> frameCam;
 		cv::imshow("Frame", frameCam);
 		nbFrames++;
 		
