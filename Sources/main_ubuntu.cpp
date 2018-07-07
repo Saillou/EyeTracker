@@ -156,22 +156,28 @@ void handleClient(int idClient, std::shared_ptr<Server> server, std::shared_ptr<
 
 
 int main() {
-	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
-	if(!pCap->isOpened())
+	cv::VideoCapture camera(0);
+	cv::VideoWritter video("Record.avi", CV_FOURCC('M', 'P', '4', '2'), 30, cv::Size(640, 480), true);
+	
+	if(!video.isOpened() || !camera.isOpened())
 		return -1;
 	
 	cv::Mat frameCam;
-	clock_t lastClock 	= clock();
-	size_t nbFrames 		= 0;
+	clock_t lastClock = clock();
+	size_t nbFrames 	= 0;
 	
 	while(cv::waitKey(1) != 27) {
-		*pCap >> frameCam;
+		if(frameCam.empty())
+			continue;
+		
+		camera >> frameCam;
+		video << frameCam;
 		cv::imshow("Frame", frameCam);
 		nbFrames++;
 		
 		clock_t thisClock = clock();
 		if(thisClock - lastClock > 1000) {
-			std::cout << "Fps: " << 1000.0*nbFrames/(thisClock - lastClock) << std::endl;
+			std::cout << "Fps: " << 1000000.0*nbFrames/(thisClock - lastClock) << std::endl;
 			lastClock = thisClock;
 			nbFrames = 0;
 		}
