@@ -97,7 +97,7 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFram
 								_jpegCompressor, 
 								pFrame->data, 	// ptr to data, const uchar *
 								pFrame->cols, 	// width
-								TJPAD(fpFrame->cols * tjPixelSize[TJPF_BGR]), // bytes per line
+								TJPAD(pFrame->cols * tjPixelSize[TJPF_BGR]), // bytes per line
 								pFrame->rows,	// height
 								TJPF_BGR, 		// pixel format
 								&buff, 			// ptr to buffer, unsigned char **
@@ -118,8 +118,6 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFram
 						msg.clear();
 						server->write(msg, idClient);
 					}
-					
-					iFrameSend++;
 				}
 				break;
 			}
@@ -174,7 +172,8 @@ int main() {
 	managerConnection.initialize();
 	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
 	
-	// Create frame dispatched
+	// Create frames
+	cv::Mat frameCam(480, 640, CV_8UC3, cv::Scalar::all(0));
 	std::shared_ptr<cv::Mat> pFrameResized = std::make_shared<cv::Mat>(240, 320, CV_8UC3, cv::Scalar::all(0));
 	
 	// Try to open the cam
