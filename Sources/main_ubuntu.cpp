@@ -205,14 +205,10 @@ int main() {
 	managerConnection.initialize();
 	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
 
-	while(1) {
-		// // Handle new clients coming
-		// try {
-			// std::thread handleThread(handleClient, server, pCap);
-		// }
-		// catch(...) {
-			// std::cout << "Thread failed" << std::endl;
-		// }
+	// Handle one client
+	std::thread handleThread(handleClient, server, pCap);
+	
+	while(cv::waitKey(1000) != 27) {
 		std::cout << "." << std::endl;
 	}
 	
