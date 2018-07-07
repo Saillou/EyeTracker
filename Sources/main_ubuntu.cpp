@@ -35,6 +35,7 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		
 	// ---------------------------- 
 	// Wait for client
+	std::cout << "Wait for clients" << std::endl;
 	int idClient = server->waitClient();
 	
 	std::cout << "Handle new client" << std::endl;
@@ -204,10 +205,8 @@ int main() {
 	managerConnection.initialize();
 	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
 
-	// Handle client until sigint
-	std::cout << "Wait for clients" << std::endl;
 	while(1) {
-		// Wait until client pop
+		// Handle new clients coming
 		std::thread handleThread(handleClient, server, pCap);
 		std::cout << "." << std::endl;
 	}
