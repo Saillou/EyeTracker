@@ -1,6 +1,8 @@
+#include <stringstream>
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <ctime>
 
 #include <mutex>
 #include <atomic>
@@ -67,99 +69,124 @@ int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame
 	const std::string format = ".jpg";
 		
 	// ---------------------------- 
-	// Wait for client
-	std::cout << "Wait for clients" << std::endl;
-	int idClient = server->waitClient();
-	
-	std::cout << "Handle new client" << std::endl;
-	BinMessage msg;
-	
-	// -- Handle client --
-	do {	
-		// Received
-		server->read(msg, idClient);
+	while(G_client) {
+		// Wait for client
+		std::cout << "Wait for clients" << std::endl;
+		int idClient = server->waitClient();
 		
-		// Answer
-		if(!msg.isValide()) {
-			continue;
-		}
+		std::cout << "Handle new client" << std::endl;
+		BinMessage msg;
 		
-		switch(msg.getAction()) {
-			// Client quit
-			case BIN_QUIT:
-				G_client = false;
-			break;
+		// -- Handle client --
+		bool run = true;
+		do {	
+			// Received
+			server->read(msg, idClient);
 			
-			// Frame info asked
-			case BIN_INFO:
-			{ 
-				CmdMessage cmd;
-				G_frameMutex.lock();
-				cmd.addCommand(CMD_HEIGHT, 	std::to_string(pFrame->rows));
-				cmd.addCommand(CMD_WIDTH, 	std::to_string(pFrame->cols));
-				cmd.addCommand(CMD_CHANNEL,	std::to_string(pFrame->channels()));
-				G_frameMutex.unlock();
+			// Answer
+			if(!msg.isValide()) {
+				continue;
+			}
+			
+			switch(msg.getAction()) {
+				// Client quit
+				case BIN_QUIT:
+					run = false;
+				break;
+				
+				// Frame info asked
+				case BIN_INFO:
+				{ 
+					CmdMessage cmd;
+					G_frameMutex.lock();
+					cmd.addCommand(CMD_HEIGHT, 	std::to_string(pFrame->rows));
+					cmd.addCommand(CMD_WIDTH, 	std::to_string(pFrame->cols));
+					cmd.addCommand(CMD_CHANNEL,	std::to_string(pFrame->channels()));
+					G_frameMutex.unlock();
 
-				msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
-				server->write(msg, idClient);
-			}
-			break;
-			
-			// Send a frame
-			case BIN_GAZO: 
-			{	
-				try {
-					// Compress to jpg with turbojpeg or opencv
-					if(_jpegCompressor == NULL) {
-						G_frameMutex.lock();
-						cv::imencode(
-							format, 		// Extension, std::string
-							*pFrame,
-							buf, 			// Data out, vector<char>
-							params		// Jpeg copmression, vector<int>
-						);
-						G_frameMutex.unlock();
-						msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
-					}
-					else {	
-						G_frameMutex.lock();
-						tjCompress2(
-							_jpegCompressor, 
-							pFrame->data, 	// ptr to data, const uchar *
-							pFrame->cols, 	// width
-							TJPAD(pFrame->cols * tjPixelSize[TJPF_BGR]), // bytes per line
-							pFrame->rows,	// height
-							TJPF_BGR, 		// pixel format
-							&buff, 			// ptr to buffer, unsigned char **
-							&bufSize, 		// ptr to buffer size, unsigned long *
-							TJSAMP_420,		// chrominace sub sampling
-							QUALITY, 		// quality, int
-							0 					// flags
-						);
-						G_frameMutex.unlock();
-						msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
-					}
-					
-					// Write a message, even if encodage failed (it will be null then).
+					msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
 					server->write(msg, idClient);
 				}
-				catch(...) {
-					std::cout << "Exception throw" << std::endl;
-					msg.clear();
-					server->write(msg, idClient);
+				break;
+				
+				// Send a frame
+				case BIN_GAZO: 
+				{	
+					try {
+						// Compress to jpg with turbojpeg or opencv
+						if(_jpegCompressor == NULL) {
+							G_frameMutex.lock();
+							cv::imencode(
+								format, 		// Extension, std::string
+								*pFrame,
+								buf, 			// Data out, vector<char>
+								params		// Jpeg copmression, vector<int>
+							);
+							G_frameMutex.unlock();
+							msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
+						}
+						else {	
+							G_frameMutex.lock();
+							tjCompress2(
+								_jpegCompressor, 
+								pFrame->data, 	// ptr to data, const uchar *
+								pFrame->cols, 	// width
+								TJPAD(pFrame->cols * tjPixelSize[TJPF_BGR]), // bytes per line
+								pFrame->rows,	// height
+								TJPF_BGR, 		// pixel format
+								&buff, 			// ptr to buffer, unsigned char **
+								&bufSize, 		// ptr to buffer size, unsigned long *
+								TJSAMP_420,		// chrominace sub sampling
+								QUALITY, 		// quality, int
+								0 					// flags
+							);
+							G_frameMutex.unlock();
+							msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
+						}
+						
+						// Write a message, even if encodage failed (it will be null then).
+						server->write(msg, idClient);
+					}
+					catch(...) {
+						std::cout << "Exception throw" << std::endl;
+						msg.clear();
+						server->write(msg, idClient);
+					}
 				}
-			}
-			break;
-		} // getAction()
-	} while(G_client);
-	
-	server->closeSocket(idClient);
-	std::cout << "Client disconnected." << std::endl;
+				break;
+			} // getAction()
+		} while(run);
+		
+		server->closeSocket(idClient);
+		std::cout << "Client disconnected." << std::endl;
+	}
 	
 	tjFree(buff);
 	tjDestroy(_jpegCompressor);
 	
 	return 0;
+}
+
+std::string _dateToString() {
+	struct tm* timeInfo = localtime(time(nullptr));
+	
+	auto __int2paddedStr = [](const int _int, const int pad) {
+		std::string intstr = std::to_string(_int);
+		if(intstr.size() >= pad)
+			return intstr;
+		else
+			return std::string(pad - intstr.size() , '0') + intstr;
+	};
+	
+	std::stringstream ss;
+	ss << __int2paddedStr(tm->year + 1900, 4);
+	ss << __int2paddedStr(tm->mon + 1, 2);
+	ss << __int2paddedStr(tm->mday,	2);
+	ss << __int2paddedStr(tm->hour,	2);
+	ss << __int2paddedStr(tm->min,	2);
+	ss << __int2paddedStr(tm->sec, 	2);
+	
+	return ss.str();
 }
 
 
@@ -180,7 +207,7 @@ int main() {
 
 	// Handle one client
 	std::thread threadClient(handleClient, server, pFrameResized);
-	// std::thread threadRecord(handleRecord, "Record.avi", pFrameResized);
+	std::thread threadRecord(handleRecord, _dateToString() + ".avi", pFrameResized);
 	
 	while(cv::waitKey(1) != 27) {
 		// Acquire the frame
@@ -202,8 +229,8 @@ int main() {
 	}
 	
 	// Finish record
-	// G_record = false;
-	// threadRecord.join();
+	G_record = false;
+	threadRecord.join();
 	
 	// Finish client
 	G_client = false;
