@@ -198,7 +198,7 @@ std::string _dateToString() {
 int main(int argc, char* argv[]) {
 	// Interpreat command line
 	const int baseInput 				= 0;
-	const std::string baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
+	const cv::String baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
 	
 	for(int i = 0; i < argc; i++) {
 		std::cout << i << " -> " << argv[i] << std::endl;
@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
 
 	// Handle one client
 	std::thread threadClient(handleClient, server, pFrameResized);
-	std::thread threadRecord(handleRecord, _dateToString() + ".avi", pFrameResized);
+	std::thread threadRecord(handleRecord, baseOutput + _dateToString() + ".avi", pFrameResized);
 	
 	while(cv::waitKey(1) != 27) {
 		// Acquire the frame
