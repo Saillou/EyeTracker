@@ -200,11 +200,10 @@ int main(int argc, char* argv[]) {
 	const int baseInput 				= 0;
 	const std::string baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
 	
-	if(argc > 1) {
-		for(int i = 0; i < argc; i++) {
-			std::cout << i << " -> " << argv[i] << std::endl;
-		}
+	for(int i = 0; i < argc; i++) {
+		std::cout << i << " -> " << argv[i] << std::endl;
 	}
+	
 	
 	// Create server TCP
 	ManagerConnection managerConnection;
@@ -216,7 +215,7 @@ int main(int argc, char* argv[]) {
 	std::shared_ptr<cv::Mat> pFrameResized = std::make_shared<cv::Mat>(240, 320, CV_8UC3, cv::Scalar::all(0));
 	
 	// Try to open the cam
-	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
+	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(baseInput);
 	if(pCap == nullptr || !pCap->isOpened())
 		return -1;
 
