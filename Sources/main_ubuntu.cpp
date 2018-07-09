@@ -168,9 +168,13 @@ int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame
 }
 
 std::string _dateToString() {
-	struct tm* timeInfo = localtime(time(nullptr));
+	time_t rawtime;
+	time(&rawtime);
 	
-	auto __int2paddedStr = [](const int _int, const int pad) {
+	struct tm* timeInfo;
+	timeInfo = localtime(&rawtime);
+	
+	auto __int2paddedStr = [](const int _int, const size_t pad) {
 		std::string intstr = std::to_string(_int);
 		if(intstr.size() >= pad)
 			return intstr;
