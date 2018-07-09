@@ -233,7 +233,12 @@ int main(int argc, char* argv[]) {
 	std::shared_ptr<cv::Mat> pFrameResized = std::make_shared<cv::Mat>(240, 320, CV_8UC3, cv::Scalar::all(0));
 	
 	// Try to open the cam
-	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(input);
+	std::shared_ptr<cv::VideoCapture> pCap;
+	if(input.size() == 1)
+		pCap = std::make_shared<cv::VideoCapture>((int)(input[0]-'0'));
+	else
+		pCap = std::make_shared<cv::VideoCapture>(input);
+	
 	if(pCap == nullptr || !pCap->isOpened())
 		return -1;
 
