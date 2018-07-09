@@ -18,9 +18,6 @@
 #include "Dk/Protocole.hpp"
 #include "Dk/ManagerConnection.hpp"
 
-const int MAXPENDING 	= 1;
-const int SOCKET_PORT 	= 3000;
-
 using namespace Protocole;
 
 std::atomic<bool> G_record(true);
@@ -199,10 +196,12 @@ int main(int argc, char* argv[]) {
 	// Config
 	const std::string baseInput 	= "0";
 	const std::string baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
+	const std::string basePort	= "3000";
 	
 	// Parameters final
 	std::string input 	= baseInput;
 	std::string output 	= baseOutput;
+	std::string port 		= basePort;
 	
 	// Interpreat command line
 	for(int i = 1; i < argc; i++) {
@@ -218,15 +217,15 @@ int main(int argc, char* argv[]) {
 		std::string value 	= withValue ? std::string(str, posM + 1) : "true";
 		
 		// -- Usage --
-		if(command == "in") input = value;
-		if(command == "out") output = value;
+		if(command == "in") input 		= value;
+		if(command == "out") output 	= value;
+		if(command == "port") port 	= value;
 	}
-	
 	
 	// Create server TCP
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
-	auto server = managerConnection.createServer(Socket::TCP, SOCKET_PORT, MAXPENDING);
+	auto server = managerConnection.createServer(Socket::TCP, Message::To_unsignedInt(port), 1);
 	
 	// Create frames
 	cv::Mat frameCam(480, 640, CV_8UC3, cv::Scalar::all(0));
