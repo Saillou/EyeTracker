@@ -184,12 +184,12 @@ std::string _dateToString() {
 	
 	
 	std::stringstream ss;
-	ss << __int2paddedStr(timeInfo->year + 1900, 4);
-	ss << __int2paddedStr(timeInfo->mon + 1, 2);
-	ss << __int2paddedStr(timeInfo->mday,	2);
-	ss << __int2paddedStr(timeInfo->hour,	2);
-	ss << __int2paddedStr(timeInfo->min,	2);
-	ss << __int2paddedStr(timeInfo->sec, 	2);
+	ss << __int2paddedStr(timeInfo->tm_year + 1900, 4);
+	ss << __int2paddedStr(timeInfo->tm_mon + 1, 2);
+	ss << __int2paddedStr(timeInfo->tm_mday,	2);
+	ss << __int2paddedStr(timeInfo->tm_hour,	2);
+	ss << __int2paddedStr(timeInfo->tm_min,	2);
+	ss << __int2paddedStr(timeInfo->tm_sec, 	2);
 	
 	return ss.str();
 }
