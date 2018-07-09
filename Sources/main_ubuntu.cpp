@@ -195,7 +195,17 @@ std::string _dateToString() {
 }
 
 
-int main() {
+int main(int argc, char* argv[]) {
+	// Interpreat command line
+	const int baseInput 				= 0;
+	const std::string baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
+	
+	if(argc > 1) {
+		for(int i = 0; i < argc; i++) {
+			std::cout << i << " -> " << argv[i] << std::endl;
+		}
+	}
+	
 	// Create server TCP
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
