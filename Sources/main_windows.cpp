@@ -10,7 +10,7 @@
 
 using namespace Protocole;
 
-int main() {
+int main(int argc, char* argv[]) {
 	// -- Connect to server
 	ManagerConnection managerConnection;
 	managerConnection.initialize();

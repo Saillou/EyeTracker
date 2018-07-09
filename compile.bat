@@ -75,7 +75,7 @@ if %LINK%==1 (
 		cd Release
 		if exist %exename%.exe (	
 			echo Execute
-			%exename%.exe 
+			%exename%.exe
 		)
 	)
 	

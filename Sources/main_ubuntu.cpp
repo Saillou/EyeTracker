@@ -196,12 +196,30 @@ std::string _dateToString() {
 
 
 int main(int argc, char* argv[]) {
-	// Interpreat command line
-	const int baseInput 				= 0;
-	const cv::String baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
+	// Config
+	const std::string baseInput 	= "0";
+	const std::string baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
 	
-	for(int i = 0; i < argc; i++) {
-		std::cout << i << " -> " << argv[i] << std::endl;
+	// Parameters final
+	std::string input 	= baseInput;
+	std::string output 	= baseOutput;
+	
+	// Interpreat command line
+	for(int i = 1; i < argc; i++) {
+		// -- Read --
+		if(strlen(argv[i]) < 2 || argv[i][0] != '-') 
+			continue;
+		
+		std::string str(argv[i]);
+		size_t posM 	= str.find(':');
+		bool withValue = (posM != std::string::npos);
+		
+		std::string command 	= std::string(str, 1, posM - (int)withValue); // Cut commande before ':'
+		std::string value 	= withValue ? std::string(str, posM + 1) : "true";
+		
+		// -- Usage --
+		if(command == "in") input = value;
+		if(command == "out") output = value;
 	}
 	
 	
@@ -215,13 +233,13 @@ int main(int argc, char* argv[]) {
 	std::shared_ptr<cv::Mat> pFrameResized = std::make_shared<cv::Mat>(240, 320, CV_8UC3, cv::Scalar::all(0));
 	
 	// Try to open the cam
-	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(baseInput);
+	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(input);
 	if(pCap == nullptr || !pCap->isOpened())
 		return -1;
 
 	// Handle one client
 	std::thread threadClient(handleClient, server, pFrameResized);
-	std::thread threadRecord(handleRecord, baseOutput + _dateToString() + ".avi", pFrameResized);
+	std::thread threadRecord(handleRecord, output + _dateToString() + ".avi", pFrameResized);
 	
 	while(cv::waitKey(1) != 27) {
 		// Acquire the frame

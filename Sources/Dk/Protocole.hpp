@@ -109,8 +109,8 @@ namespace Protocole {
 		
 		// Methods
 		void unserialize(const char *data, const size_t nb) 	override;
-		std::vector<char> serialize() const 							override;
-		void clear() 																	override;
+		std::vector<char> serialize() const 						override;
+		void clear() 														override;
 		
 		void addCommand(const std::string& action, const std::string& data);
 		void addCommand(const Command& cmd);
