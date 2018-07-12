@@ -111,8 +111,8 @@ echo "Compile sources"
 g++ -c -std=gnu++11 -O2 \
 	-Wall \
 	$PathSources \
-	-I/usr/Local/include/  \
-	-I/usr/Local/lib/libjpeg/
+	-I/usr/local/include/  \
+	-I/usr/local/lib/libjpeg/
 cd ../
 
 
@@ -127,8 +127,8 @@ fi
 echo "Link objects"
 g++ -o $OutputName \
 	$PathObjects \
-	-L/usr/Local/lib/ \
-	-L/usr/Local/lib/libjpeg/ \
+	-L/usr/local/lib/ \
+	-L/usr/local/lib/libjpeg/ \
 	-pthread \
 	-lopencv_core \
 	-lturbojpeg \
