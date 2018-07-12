@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Get update from github
-git pull EyeTracker master
-
 # Functions
 create() {
 	if [ ! -d $1 ]
@@ -94,10 +91,17 @@ declare -a Dk=(
 	"Server" 
 	"Socket"
 )
-compileDk=1
+declare compileDk=1
+declare fetchGithub=0
 
 PathSources=""
 PathObjects=""
+
+# Get update from github
+if [ fetchGithub == 1 ]
+	then git pull EyeTracker master
+fi
+
 
 # Compile source
 cd "Objects"
@@ -111,8 +115,8 @@ echo "Compile sources"
 g++ -c -std=gnu++11 -O2 \
 	-Wall \
 	$PathSources \
-	-I/usr/Local/include/  \
-	-I/usr/Local/lib/libjpeg/
+	-I/usr/local/include/  \
+	-I/usr/local/lib/libjpeg/
 cd ../
 
 
@@ -127,8 +131,8 @@ fi
 echo "Link objects"
 g++ -o $OutputName \
 	$PathObjects \
-	-L/usr/Local/lib/ \
-	-L/usr/Local/lib/libjpeg/ \
+	-L/usr/local/lib/ \
+	-L/usr/local/lib/libjpeg/ \
 	-pthread \
 	-lopencv_core \
 	-lturbojpeg \
