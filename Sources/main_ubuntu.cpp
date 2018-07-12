@@ -29,7 +29,7 @@ int handleRecord(const cv::String pathVideo ,std::shared_ptr<cv::Mat> pFrame) {
 	const double Ts = 1000.0/FPS; // ms.
 	
 	G_frameMutex.lock();
-	cv::VideoWriter video(pathVideo, CV_FOURCC('M', 'P', '4', '2'), FPS, cv::Size(pFrame->cols, pFrame->rows), true);
+	cv::VideoWriter video(pathVideo, cv::VideoWriter::fourcc('M', 'P', '4', '2'), FPS, cv::Size(pFrame->cols, pFrame->rows), true);
 	G_frameMutex.unlock();
 	
 	clock_t clockT = clock();
@@ -57,12 +57,12 @@ int handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame
 	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor 	= tjInitCompress();
-	unsigned char* buff 			= tjAlloc(10000); // Random init, tj will carry on the allocation
+	unsigned char* buff 		= tjAlloc(10000); // Random init, tj will carry on the allocation
 	unsigned long bufSize 		= 0;
 	
 	// Encodage OPENCV
 	std::vector<uchar> buf;
-	const std::vector<int> params{CV_IMWRITE_JPEG_QUALITY, QUALITY};
+	const std::vector<int> params{cv::IMWRITE_JPEG_QUALITY, QUALITY};
 	const std::string format = ".jpg";
 		
 	// ---------------------------- 
