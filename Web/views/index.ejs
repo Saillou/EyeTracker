@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title> Index </title>
+		<link href="/Style/design.css" rel="stylesheet" type="text/css" />
+	</head>
+
+	<body>
+		Files:
+		<ul>
+<% Movies.forEach(function(file) { %>
+			<li> <a href="download?id=<%= file %>">Click</a> </li>
+<% }); %>
+		</ul>
+	</body>
+</html>
