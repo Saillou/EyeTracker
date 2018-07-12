@@ -1,6 +1,6 @@
-const http 			= require('http');
+const http 		= require('http');
 const express 	= require('express');
-const fs				= require('fs');
+const fs			= require('fs');
 
 const PORT_USED = 3001;
 
