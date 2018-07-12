@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Get update from github
-git pull EyeTracker master
-
 # Functions
 create() {
 	if [ ! -d $1 ]
@@ -94,10 +91,17 @@ declare -a Dk=(
 	"Server" 
 	"Socket"
 )
-compileDk=1
+declare compileDk=1
+declare fetchGithub=0
 
 PathSources=""
 PathObjects=""
+
+# Get update from github
+if [ fetchGithub == 1 ]
+	then git pull EyeTracker master
+fi
+
 
 # Compile source
 cd "Objects"
