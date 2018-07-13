@@ -196,12 +196,12 @@ int main(int argc, char* argv[]) {
 	// Config
 	const std::string baseInput 	= "0";
 	const std::string baseOutput 	= "/home/pi/prog/EyeTracker/Web/Recordings/";
-	const std::string basePort	= "3000";
+	const std::string basePort		= "3000";
 	
 	// Parameters final
 	std::string input 	= baseInput;
 	std::string output 	= baseOutput;
-	std::string port 		= basePort;
+	std::string port 	= basePort;
 	
 	// Interpreat command line
 	for(int i = 1; i < argc; i++) {
