@@ -28,7 +28,6 @@ if not exist Windows\Release (
 :: Import DLL
 echo. Copying dlls needed..
 call:copyDLL !cvBinPath! libopencv_core341 !thisBinPath!
-call:copyDLL !cvBinPath! libopencv_core341 !thisBinPath!
 call:copyDLL !cvBinPath! libopencv_highgui341 !thisBinPath!
 call:copyDLL !cvBinPath! libopencv_imgcodecs341 !thisBinPath!
 call:copyDLL !cvBinPath! libopencv_imgproc341 !thisBinPath!

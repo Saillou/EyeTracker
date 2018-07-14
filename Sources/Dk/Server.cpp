@@ -81,9 +81,12 @@ int Server::waitClient() {
 }
 
 void Server::closeSocket(int& idSocket) {
-	if(idSocket > 0) {
+	if(_idSocket > 0) {
 		shutdown(idSocket, CLOSE_ER); // No emission or reception
+#ifndef USE_MSVC 
 		close(idSocket);
+#else
+	_idSocket = -1;
+#endif
 	}
-	idSocket = 0;
 }

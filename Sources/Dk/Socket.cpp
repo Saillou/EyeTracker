@@ -13,7 +13,11 @@ Socket::Socket(const std::string& ipAdress, const int port) :
 Socket::~Socket() {
 	if(_idSocket > 0) {
 		shutdown(_idSocket, CLOSE_ER); // No emission or reception
+#ifndef USE_MSVC 
 		close(_idSocket);
+#else
+	_idSocket = -1;
+#endif
 	}
 }
 
@@ -73,8 +77,8 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 			char* buffer 			=	nullptr;
 			
 			// Message size
-			received 	= -1;
-			buffer 	= (char*)realloc(buffer, Protocole::BinMessage::SIZE_SIZE * sizeof(char));
+			received = -1;
+			buffer 		= (char*)realloc(buffer, Protocole::BinMessage::SIZE_SIZE * sizeof(char));
 			
 			if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_SIZE, 0)) == (int)Protocole::BinMessage::SIZE_SIZE) {
 				messageSize = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_SIZE);

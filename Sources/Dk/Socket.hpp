@@ -14,12 +14,15 @@
 	typedef int SOCKET_LENGTH;
 #endif
 
+#ifndef USE_MSVC 
+	#include <unistd.h>
+#endif
+
 #ifndef SOCKET_ERROR
 	#define SOCKET_ERROR -1
 #endif
 
 #include <iostream>
-#include <unistd.h>
 #include "Protocole.hpp"
 
 class Socket {
