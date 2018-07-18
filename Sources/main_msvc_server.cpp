@@ -3,7 +3,7 @@
 #include <fstream>
 #include <cmath>
 #include <thread>
-#include <future>
+#include <atomic>
 #include <turbojpeg.h>
 
 #include <opencv2/core.hpp>
@@ -14,15 +14,17 @@
 #include "Dk/Protocole.hpp"
 #include "Dk/ManagerConnection.hpp"
 
+#define MULTITHREAD 1
+
 std::atomic<bool> G_HANDLING(true);
 
 using namespace Protocole;
 
 void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap) {
-	const int QUALITY = 80;
-	const bool RESIZE = false;
-	const bool GRAY = false;
-	
+	const int QUALITY 	= 80;
+	const bool RESIZE 	= false;
+	const bool GRAY 	= false;
+
 	// Camera
 	if(ptrCap == nullptr) {
 		std::cout << "Camera not opened" << std::endl;
@@ -56,14 +58,14 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		
 		// Define frame expected
 		cv::Mat frameCam 				= cv::Mat::zeros(480, 640, CV_8UC3);
-		cv::Mat frameCamResized	= RESIZE ? cv::Mat::zeros(240, 320, GRAY ? CV_8UC1 : CV_8UC3) : cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
-		
-		// Animation parameters
-		const cv::Point center 		= cv::Point(frameCam.cols/2, frameCam.rows/2);
-		const int diameterMax 		= frameCam.rows/4;
+		cv::Mat frameCamResized	= RESIZE ? cv::Mat::zeros(240, 480, GRAY ? CV_8UC1 : CV_8UC3) : cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
 		
 		// -- Handle client --
+#ifdef MULTITHREAD
+		std::vector<std::shared_ptr<Server::ThreadWrite>> threadsRunning;
+#endif
 		bool run = true;
+		
 		while(run) {
 			// Get the frame
 			*ptrCap >> frameCam;
@@ -122,19 +124,35 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 						);
 						msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
 						
-						// Write a message, even if encodage failed (it will be null then).
+						// Write the message						
+#ifdef MULTITHREAD
+						threadsRunning.push_back(std::make_shared<Server::ThreadWrite>(server, msg, idClient));
+#else
 						server->write(msg, idClient);
+#endif
 					}
 					break;
-				}
+				} // Switch action
+				
+				// Delete threads that are finished (<=> inactive)
+#ifdef MULTITHREAD
+				threadsRunning.erase(
+					std::remove_if(threadsRunning.begin(), threadsRunning.end(), [](const std::shared_ptr<Server::ThreadWrite>& tw) {
+						return !tw->isActive();
+				}), threadsRunning.end());
+#endif
 
-			} // Msg.valide()
+			} // Msg.valide
 			else 
 				break;
 
 		} // run
 		
 		server->closeSocket(idClient);
+#ifdef MULTITHREAD
+		threadsRunning.clear();
+#endif
+
 		std::cout << "Client disconnected." << std::endl;
 		if(G_HANDLING)
 			std::cout << "Wait for clients";
@@ -153,7 +171,7 @@ int main() {
 	
 	// Create server TCP
 	const int MAXPENDING = 5;
-	const int SOCKET_PORT = 3000;
+	const unsigned short SOCKET_PORT = 3000;
 	
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
@@ -170,7 +188,7 @@ int main() {
 		while(clock() - c0 < TIME_WAIT) run = !(GetKeyState(VK_SPACE) & 0x8000);
 		
 		int mn = clock()/60/1000;
-		int sec = (clock()/1000%60);
+		int sec	= (clock()/1000%60);
 		std::cout << std::endl << (mn < 10 ? "0" : "") << mn << "'" << (sec < 10 ? "0" : "") << sec << std::endl;
 	}
 	

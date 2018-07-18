@@ -1,7 +1,7 @@
 #include "Socket.hpp"
 
 // Constructors
-Socket::Socket(const std::string& ipAdress, const int port) :
+Socket::Socket(const std::string& ipAdress, const unsigned short port) :
 	_ipAdress(ipAdress),
 	_port(port),
 	_idSocket(-1),
@@ -32,9 +32,9 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 	if(_type == NONE) 
 		return false;
 	else	if(_type == TCP)
-		_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+		_idSocket = (int)socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	else	if(_type == UDP) 
-		_idSocket = socket(PF_INET, SOCK_DGRAM, 0);
+		_idSocket = (int)socket(PF_INET, SOCK_DGRAM, 0);
 	else {
 		_type = NONE;
 		std::cout << "[Socket] Type not recognized." << std::endl;
@@ -113,7 +113,7 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 		
 		// Message size
 		received = -1;
-		buffer 		= (char*)realloc(buffer, Protocole::BinMessage::SIZE_SIZE * sizeof(char));
+		buffer = (char*)realloc(buffer, Protocole::BinMessage::SIZE_SIZE * sizeof(char));
 		
 		if((received = recv(idSocket, buffer, Protocole::BinMessage::SIZE_SIZE, 0)) == (int)Protocole::BinMessage::SIZE_SIZE) {
 			messageSize = Protocole::BinMessage::Read_256(buffer, Protocole::BinMessage::SIZE_SIZE);
@@ -137,8 +137,8 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 		buffer 	= (char*)realloc(buffer, messageSize * sizeof(char));
 		
 		while(already_read < messageSize) {
-			int still = messageSize - already_read;
-			if((received = recv(idSocket, buffer + already_read, still > BUFFER_SIZE_MAX ? BUFFER_SIZE_MAX : still, 0)) > 0) 
+			size_t still = messageSize - already_read;
+			if((received = recv(idSocket, buffer + already_read, (int)(still > BUFFER_SIZE_MAX ? BUFFER_SIZE_MAX : still), 0)) > 0) 
 				already_read += received;
 			else 
 				break;
@@ -156,7 +156,7 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 	
 	return false;
 }
-bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
+bool Socket::write(const Protocole::BinMessage& msg, int idSocket) const {
 	// Check
 	if(_idSocket <= 0 || _type == NONE) {
 		std::cout << "Socket not connected." << std::endl;
@@ -202,8 +202,8 @@ Socket::Accessiblity Socket::waitForAccess(unsigned long timeoutMs, int idSocket
 	
 	access.errorCode = select(idSocket+1, &bkRead, &bkWrite, &bkErr, timeoutMs > 0 ? &timeout : NULL);
 	if(access.errorCode > 0) { // No errors
-		access.writable = FD_ISSET(idSocket, &bkWrite);
-		access.readable = FD_ISSET(idSocket, &bkRead);
+		access.writable = FD_ISSET(idSocket, &bkWrite) > 0;
+		access.readable = FD_ISSET(idSocket, &bkRead) > 0;
 	}
 	
 	return access;
@@ -216,7 +216,7 @@ Socket::Accessiblity Socket::waitForAccess(unsigned long timeoutMs, int idSocket
 const std::string& Socket::getIpAdress() const {
 	return _ipAdress;
 }
-const int& Socket::getPort() const {
+const unsigned short& Socket::getPort() const {
 	return _port;
 }
 const int& Socket::getId() const {

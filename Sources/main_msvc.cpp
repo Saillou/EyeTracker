@@ -16,7 +16,7 @@
 
 using namespace Protocole;
 
-int main(int argc, char* argv[]) {
+int main() {
 	// -- Connect to server
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
@@ -49,9 +49,9 @@ int main(int argc, char* argv[]) {
 	// Answer	
 	if(sock->read(msg)) {
 		CmdMessage cmd(Message::To_string(msg.getData()));
-		const size_t WIDTH 		= Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second);
-		const size_t HEIGHT 		= Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second);
-		const size_t CHANNEL 	= Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second);
+		const int WIDTH 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second);
+		const int HEIGHT 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second);
+		const int CHANNEL 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second);
 		
 		if(WIDTH*CHANNEL*HEIGHT > 0) {
 			cv::Mat frame 			= cv::Mat::zeros(HEIGHT, WIDTH, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
@@ -74,9 +74,13 @@ int main(int argc, char* argv[]) {
 						break;
 					}
 					
-					tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, CHANNEL == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
+					tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), (unsigned long)msg.getSize(), frame.data, WIDTH, 0, HEIGHT, CHANNEL == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
 					if(!frame.empty()) {
-						cv::resize(frame, frameRes, frameRes.size());
+						if(frame.size() != frameRes.size())
+							cv::resize(frame, frameRes, frameRes.size());
+						else	
+							frameRes = frame;
+						
 						cv::imshow("Frame(res)", frameRes);
 						nbFrames++;
 					}

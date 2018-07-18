@@ -42,21 +42,21 @@ public:
 	};
 	
 	// Constructors
-	Socket(const std::string& ipAdress = "localhost", const int port = 80);
+	Socket(const std::string& ipAdress = "localhost", const unsigned short port = 80);
 	virtual ~Socket();
 	
 	// Methods
 	virtual bool initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode);
 	bool read(Protocole::BinMessage& msg, int idSocket = -1) const;
-	bool write(Protocole::BinMessage& msg, int idSocket = -1) const;
-	
+	bool write(const Protocole::BinMessage& msg, int idSocket = -1) const;
+	  
 	Accessiblity waitForAccess(unsigned long timeoutMs = 0, int socketId = -1) const;
 	
 	// Setters
 	
 	// Getters
 	const std::string& getIpAdress() const;
-	const int& getPort() const;
+	const unsigned short& getPort() const;
 	const int& getId() const;
 	const CONNECTION_TYPE& getType() const;
 	
@@ -76,7 +76,7 @@ protected:
 	
 	// Members
 	std::string _ipAdress;
-	int 			_port;
+	unsigned short	_port;
 	int 			_idSocket;
 	CONNECTION_TYPE _type;
 	CONNECTION_MODE _mode;

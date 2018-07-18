@@ -1,7 +1,7 @@
 #include "Server.hpp"
 
 // Constructors
-Server::Server(const int port, const size_t maxPending) : 
+Server::Server(const unsigned short port, const int maxPending) : 
 	Socket("", port), 
 	_maxPending(maxPending) 
 {
@@ -21,9 +21,9 @@ bool Server::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 	if(_type == NONE)
 		return false;
 	else	if(_type == TCP)
-		_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+		_idSocket = (int)socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	else	if(_type == UDP)
-		_idSocket = socket(PF_INET, SOCK_DGRAM, 0);
+		_idSocket = (int)socket(PF_INET, SOCK_DGRAM, 0);
 	else {
 		_type = NONE;
 		std::cout << "[Servers] Type not recognized." << std::endl;
@@ -71,7 +71,7 @@ int Server::waitClient(long ms) {
 		}
 		
 		bool criticError = false;
-		if((clientId = accept(_idSocket, (struct sockaddr*)&clientEcho, &len)) == SOCKET_ERROR) {
+		if((clientId = (int)accept(_idSocket, (struct sockaddr*)&clientEcho, &len)) == SOCKET_ERROR) {
 			criticError = true;
 			
 			// Maybe we can solve the error
@@ -141,4 +141,44 @@ void Server::closeAll() {
 	for(auto& idSocket: _idScketsConnected)
 		closeSocket(idSocket);
 }
+
+
+
+// ------------------------ ThreadWrite --------------------- //
+Server::ThreadWrite::ThreadWrite(std::shared_ptr<Server> server, const Protocole::BinMessage& msg, const int idClient) :
+	_active(true),
+	_ptrThread(new std::thread(&ThreadWrite::write, this, server, msg, idClient))
+{
+}
+
+Server::ThreadWrite::~ThreadWrite() {
+	if(_ptrThread)
+		if(_ptrThread->joinable())
+			_ptrThread->join();
+		
+	delete _ptrThread;
+}
+	
+void Server::ThreadWrite::write(std::shared_ptr<Server> server, const Protocole::BinMessage& msg, const int idClient) {
+	server->write(msg, idClient);
+	
+	_mutexActive.lock();
+	_active = false;
+	_mutexActive.unlock();
+}
+	
+bool Server::ThreadWrite::isActive() {
+	bool res;
+	
+	_mutexActive.lock();
+	res =  _active;
+	_mutexActive.unlock();
+	
+	return res;
+}
+
+
+
+
+
 

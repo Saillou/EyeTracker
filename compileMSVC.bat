@@ -45,8 +45,8 @@ if exist %object%\*.obj (
 	del %object%\*.obj
 )
 
-::Compile sources
-cl	/c /EHa ^
+::Compile sources 
+cl	/c /EHa /W3 ^
 	%source%\main_msvc.cpp ^
 	%source%\main_msvc_server.cpp ^
 	%source%\Dk\Protocole.cpp ^
