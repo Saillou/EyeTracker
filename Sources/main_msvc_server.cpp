@@ -32,7 +32,7 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 	}
 	
 	// Encodage TURBO-JPG
-	tjhandle _jpegCompressor 	= tjInitCompress();
+	tjhandle _jpegCompressor = tjInitCompress();
 	if(_jpegCompressor == NULL) {
 		std::cout << "Libjpeg-turbo not loaded" << std::endl;
 		return;

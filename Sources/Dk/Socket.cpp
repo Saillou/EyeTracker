@@ -49,6 +49,9 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 	clientEcho.sin_port				= htons(_port);	
 	clientEcho.sin_family		 	= AF_INET;
 	
+	// Use the mode defined
+	_changeMode(mode);
+	
 	// Try to connect	
 	if(connect(_idSocket, (struct sockaddr *)&clientEcho, sizeof(clientEcho)) == SOCKET_ERROR) {
 		bool criticError = true;
@@ -57,13 +60,15 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 		int error = WSAGetLastError();
 		
 		switch(error) {
-			case WSAEWOULDBLOCK: // Only triggered during not_blocking operations
-				std::cout << "Connecting..." << std::endl;
-				
+			case WSAEWOULDBLOCK: // Only triggered during not_blocking operations				
 				{ // Wait to be connected and check writable
 					auto info = waitForAccess(5);
 					criticError = info.errorCode <= 0 || !info.writable;
 				}
+			break;
+			
+			case WSAETIMEDOUT:
+				// Timeout.. No stream message as we will use this one a lot.
 			break;
 			
 			case WSAEISCONN:
@@ -82,12 +87,11 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 #endif
 		
 		if(criticError) {
-			std::cout << "Could not reach server." << std::endl;
 			return false;
 		}
 	}
 	
-	// Use the mode defined
+	// Use the mode defined (may have been changed with accept() from server)
 	_changeMode(mode);
 	
 	return true;

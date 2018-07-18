@@ -21,8 +21,14 @@ int main() {
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	
+	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.0", 3000), ManagerConnection::IpAdress("192.168.128.255", 3000), true);
+	std::cout << "Ip Open :" << (ipOpened.size() > 0 ? ipOpened[0].toFullString() : "None") << std::endl;
+	if(ipOpened.size() == 0) 
+		return 0;
+	
+	ManagerConnection::IpAdress ipServer = ipOpened[0];
 	std::cout << "Try to connect.." << std::endl;
-	auto sock = managerConnection.connectTo(Socket::TCP, Socket::BLOCKING, "192.168.128.34", 3000);
+	auto sock = managerConnection.connectTo(Socket::TCP, Socket::BLOCKING, ipServer.toString(), ipServer.getPort());
 	
 	if(sock == nullptr) {
 		std::cout << "Not connected." << std::endl;

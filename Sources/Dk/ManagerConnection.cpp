@@ -75,3 +75,133 @@ void ManagerConnection::wait(int ms) {
 	clock_t c0 = clock();
 	while(clock() - c0 < ms);
 }
+std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress& ipBeg, const IpAdress& ipEnd, bool stopAtFirst) {	
+	// Determine delta port
+	int pBeg = ipBeg.getPort();
+	int pEnd = ipBeg.getPort();
+	
+	if(pBeg > pEnd) {
+		pBeg += pEnd;
+		pEnd = pBeg - pEnd;
+		pBeg = pBeg - pEnd;
+	}
+	
+	// Determine delta target
+	size_t sBeg = ipBeg.toNumber();
+	size_t sEnd = ipEnd.toNumber();
+	
+	if(sBeg > sEnd) {
+		size_t tmp = sBeg;
+		sBeg = sEnd;
+		sEnd = tmp;
+	}
+	
+	// Iterate through all ip
+	std::vector<IpAdress> ipAvailable;
+	
+	for(int port = pBeg; port <= pEnd; port++) {
+		for(size_t target = sBeg; target <= sEnd; target++) {
+			IpAdress ipTested(target, port);
+			if(!ipTested.isValide()) 
+				continue;
+
+			if(connectTo(Socket::TCP, Socket::NOT_BLOCKING, ipTested.toString(), port) != nullptr) {
+				ipAvailable.push_back(ipTested);
+
+				if(stopAtFirst)
+					break;
+			}
+			
+		}
+	}
+	
+	return ipAvailable;
+}
+
+// --------- Nested class --------- //
+// Constructors
+ManagerConnection::IpAdress::IpAdress(const std::string& ipAndPort)  :
+	_target({0, 0, 0, 0}),
+	_port(0),
+	_valide(false)
+{
+	size_t posPort = ipAndPort.find(':');	
+	if(posPort != std::string::npos && posPort > 0) {
+		std::string strTarget = ipAndPort.substr(0, posPort);
+		std::string strPort = ipAndPort.substr(posPort+1);
+
+		_valide = _targetFromString(strTarget) && _portFromString(strPort);
+	}
+}
+ManagerConnection::IpAdress::IpAdress(const std::string& strTarget, int port)  :
+	_target({0,0,0,0}),
+	_port(port),
+	_valide(false)
+{
+	_valide = (bool)(_targetFromString(strTarget) && (_port > 0 && _port < 1e4));
+}
+ManagerConnection::IpAdress::IpAdress(char c1, char c2, char c3, char c4, int port) :
+	_target({c1, c2, c3, c4}),
+	_port(port),
+	_valide(false)
+{
+	_valide = (bool)(_port > 0 && _port < 1e4);
+}
+ManagerConnection::IpAdress::IpAdress(size_t target, int port) :
+	_target(Protocole::BinMessage::Write_256(target, 4)),
+	_port(port),
+	_valide(false)
+{
+	_valide = (bool)(_port > 0 && _port < 1e4);
+}
+
+// Methods
+std::string ManagerConnection::IpAdress::toString() const {
+	std::stringstream ss;
+	for(int i = 0; i < 4; i++)
+		ss << (int)(unsigned char)_target[i] << (i < 3 ? "." : "");
+	
+	return ss.str();
+}
+std::string ManagerConnection::IpAdress::toFullString() const {
+	std::stringstream ss;
+	ss << toString() << ":" << _port;
+	return ss.str();
+}
+size_t ManagerConnection::IpAdress::toNumber() const {
+	return Protocole::BinMessage::Read_256(_target);
+}
+
+bool ManagerConnection::IpAdress::_targetFromString(const std::string& path) {
+    std::istringstream flow(path);
+    std::string s;    
+	int i = 0;
+    while (getline(flow, s, '.')) {
+        int nb = (int)Protocole::Message::To_unsignedInt(s);
+		
+		// Check
+		if(i > 4 || nb > 255 || nb < 0)
+			return false;		
+		else 
+			_target[i] = (char)nb;
+		i++;
+    }
+	
+	return true;
+}
+bool ManagerConnection::IpAdress::_portFromString(const std::string& port) {
+	_port = (int)Protocole::Message::To_unsignedInt(port);
+	return _port > 0 && _port < 1e4;
+}
+
+// Getters
+int ManagerConnection::IpAdress::getPort() const {
+	return _port;
+}
+const std::vector<char>& ManagerConnection::IpAdress::getTarget() const {
+	return _target;
+}
+bool ManagerConnection::IpAdress::isValide() const {
+	return _valide;
+}
+		
