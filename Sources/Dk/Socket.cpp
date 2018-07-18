@@ -13,11 +13,13 @@ Socket::Socket(const std::string& ipAdress, const int port) :
 Socket::~Socket() {
 	if(_idSocket > 0) {
 		shutdown(_idSocket, CLOSE_ER); // No emission or reception
-#ifndef USE_MSVC 
+#ifndef _MSC_VER  
 		close(_idSocket);
 #else
-	_idSocket = -1;
+		closesocket(_idSocket);
 #endif
+
+		_idSocket = -1;
 	}
 }
 
@@ -47,40 +49,37 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 	clientEcho.sin_port				= htons(_port);	
 	clientEcho.sin_family		 	= AF_INET;
 	
-	if(_mode == NOT_BLOCKING)
-		_changeMode(mode);
-	
 	// Try to connect	
 	if(connect(_idSocket, (struct sockaddr *)&clientEcho, sizeof(clientEcho)) == SOCKET_ERROR) {
 		bool criticError = true;
 		
-		#ifdef _WIN32
-			int error = WSAGetLastError();
+#ifdef _WIN32
+		int error = WSAGetLastError();
+		
+		switch(error) {
+			case WSAEWOULDBLOCK: // Only triggered during not_blocking operations
+				std::cout << "Connecting..." << std::endl;
+				
+				{ // Wait to be connected and check writable
+					auto info = waitForAccess(5);
+					criticError = info.errorCode <= 0 || !info.writable;
+				}
+			break;
 			
-			switch(error) {
-				case WSAEWOULDBLOCK: // Only triggered during not_blocking operations
-					std::cout << "Connecting..." << std::endl;
-					
-					{ // Wait to be connected and check writable
-						auto info = waitForAccess(5);
-						criticError = info.errorCode <= 0 || !info.writable;
-					}
-				break;
-				
-				case WSAEISCONN:
-					std::cout << "Socket is already connected." << std::endl;
-					criticError = false;
-				break;
-				
-				case WSAECONNREFUSED:
-					std::cout << "Connection refused. " << std::endl;
-				break;
-				
-				default:
-					std::cout << "Error not treated: " << error << std::endl;
-				break;
-			}
-		#endif
+			case WSAEISCONN:
+				std::cout << "Socket is already connected." << std::endl;
+				criticError = false;
+			break;
+			
+			case WSAECONNREFUSED:
+				std::cout << "Connection refused. " << std::endl;
+			break;
+			
+			default:
+				std::cout << "Error not treated: " << error << std::endl;
+			break;
+		}
+#endif
 		
 		if(criticError) {
 			std::cout << "Could not reach server." << std::endl;
@@ -88,9 +87,14 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 		}
 	}
 	
+	// Use the mode defined
+	_changeMode(mode);
+	
 	return true;
 }
 bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
+	msg.clear();
+	
 	// Check
 	if(_idSocket <= 0 || _type == NONE) {
 		std::cout << "Socket not connected." << std::endl;
@@ -100,12 +104,12 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 	if(idSocket <= 0)
 		idSocket = _idSocket;
 	
-	if(_type == TCP || _type == UDP) {
+	if(_type == TCP) {
 		// -- Read message --
-		int received 			= -1;
+		int received 		= -1;
 		size_t messageSize = 0;
 		size_t messageCode = 0;
-		char* buffer 			=	nullptr;
+		char* buffer 		=	nullptr;
 		
 		// Message size
 		received = -1;
@@ -142,10 +146,12 @@ bool Socket::read(Protocole::BinMessage& msg, int idSocket) const {
 
 		msg.set(messageCode, messageSize, buffer);
 		free(buffer);
-		
-		
+
 		// Result
 		return msg.isValide();
+	}
+	if(_type == UDP) {
+		// Not implemented yet
 	}
 	
 	return false;
@@ -160,37 +166,44 @@ bool Socket::write(Protocole::BinMessage& msg, int idSocket) const {
 	if(idSocket <= 0)
 		idSocket = _idSocket;
 	
-	if(_type == TCP || _type == UDP) {
+	if(_type == TCP) {
 		auto message = msg.serialize();
 		int sended = (int)message.size();
 		
 		return (send(idSocket, message.data(), sended, 0) == sended);
 	}
+	if(_type == UDP) {
+		// Not implemented yet
+	}
 	
 	return false;
 }
 	
-Socket::Accessiblity Socket::waitForAccess(unsigned long timeoutMs) const {
+Socket::Accessiblity Socket::waitForAccess(unsigned long timeoutMs, int idSocket) const {
 	Socket::Accessiblity access{false, false, 0};
 	
+	if(idSocket < 0) 
+		idSocket = _idSocket;
+	
 	// Wait using select
-	const timeval timeout {
+	const timeval timeout = {
 		/* timeout.tv_sec = */(long)(timeoutMs / (long)1e3),
 		/* timeout.tv_usec = */(long)(timeoutMs * (long)1e3) % (long)1e6
 	};
+	
 	fd_set bkRead, bkWrite, bkErr;
 	FD_ZERO(&bkRead);
 	FD_ZERO(&bkWrite);
 	FD_ZERO(&bkErr);
 	
-	FD_SET(_idSocket, &bkRead);
-	FD_SET(_idSocket, &bkWrite);
-	FD_SET(_idSocket, &bkErr);
+	FD_SET(idSocket, &bkRead);
+	FD_SET(idSocket, &bkWrite);
+	FD_SET(idSocket, &bkErr);
 	
-	access.errorCode = select(0, &bkRead, &bkWrite, &bkErr, &timeout);
+	access.errorCode = select(idSocket+1, &bkRead, &bkWrite, &bkErr, timeoutMs > 0 ? &timeout : NULL);
 	if(access.errorCode > 0) { // No errors
-		access.writable = FD_ISSET(_idSocket, &bkWrite);
-		access.readable = FD_ISSET(_idSocket, &bkRead);
+		access.writable = FD_ISSET(idSocket, &bkWrite);
+		access.readable = FD_ISSET(idSocket, &bkRead);
 	}
 	
 	return access;
@@ -214,16 +227,23 @@ const Socket::CONNECTION_TYPE& Socket::getType() const {
 }
 
 
-int Socket::_changeMode(const CONNECTION_MODE mode) {
+int Socket::_changeMode(const CONNECTION_MODE mode, int idSocket) {
+	if(idSocket < 0)
+		idSocket = this->_idSocket;
+	
 #ifdef __linux__ 
 	// Use the standard POSIX 
-	int oldFlags = fcntl(_idSocket, F_GETFL, 0);
+	int oldFlags = fcntl(idSocket, F_GETFL, 0);
 	int flags = (mode == NOT_BLOCKING) ? oldFlags | O_NONBLOCK : oldFlags & ~O_NONBLOCK;
-	return fcntl(_idSocket, F_SETFL, flags);
+	return fcntl(idSocket, F_SETFL, flags);
 	
 #elif _WIN32
+	// Use the WSA 
 	unsigned long ul = (mode == NOT_BLOCKING) ? 1 : 0; // Parameter for FIONBIO
-	return ioctlsocket(_idSocket, FIONBIO, &ul);
+	return ioctlsocket(idSocket, FIONBIO, &ul);
 #endif
+
+	// No implementation
+	return -1;
 }
 

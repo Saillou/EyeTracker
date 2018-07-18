@@ -14,33 +14,37 @@
 #include "Dk/Protocole.hpp"
 #include "Dk/ManagerConnection.hpp"
 
-#define MAXPENDING 	15
-#define SOCKET_PORT 3000
-
 std::atomic<bool> G_HANDLING(true);
 
 using namespace Protocole;
 
-void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap = nullptr) {
+void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap) {
 	const int QUALITY = 80;
 	const bool RESIZE = false;
 	const bool GRAY = false;
 	
+	// Camera
+	if(ptrCap == nullptr) {
+		std::cout << "Camera not opened" << std::endl;
+		return;
+	}
+	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor 	= tjInitCompress();
-	unsigned char* buff 			= tjAlloc(10000); // Random init, tj will carry on the allocation
-	unsigned long bufSize 		= 0;
+	if(_jpegCompressor == NULL) {
+		std::cout << "Libjpeg-turbo not loaded" << std::endl;
+		return;
+	}
 	
-	// Encodage OPENCV
-	std::vector<uchar> buf;
-	const std::vector<int> params{CV_IMWRITE_JPEG_QUALITY, QUALITY};
-	const std::string format = ".jpg";
+	unsigned char* buff 		= tjAlloc(10000); // Random init, tj will carry on the allocation
+	unsigned long bufSize 	= 0;
 		
 	// ---------------------------- 
 	// Wait for client
 	std::cout << "Wait for clients";
 	while(G_HANDLING) {
 		std::cout << ".";
+		
 		int idClient = server->waitClient(5);
 		if(idClient <= 0) { 
 			ManagerConnection::wait(350);
@@ -57,37 +61,25 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		// Animation parameters
 		const cv::Point center 		= cv::Point(frameCam.cols/2, frameCam.rows/2);
 		const int diameterMax 		= frameCam.rows/4;
-		size_t iFrameSend 			= 0;
 		
 		// -- Handle client --
 		bool run = true;
 		while(run) {
-			// Get the frame [If no videoCapture => generate an animation]
-			if(ptrCap == nullptr) {
-				frameCam = cv::Mat::zeros(frameCam.rows, frameCam.cols, GRAY ? CV_8UC1 : CV_8UC3);
-				cv::circle(frameCam, center, diameterMax*(1+std::cos(0.1*iFrameSend)), cv::Scalar(255), -1);
-			}
-			else {
-				*ptrCap >> frameCam;
-				if(GRAY && frameCam.channels() == 3)
-					cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
-			}
-			
-			// Check validity
+			// Get the frame
+			*ptrCap >> frameCam;
 			if(frameCam.empty())
 				continue;
 			
-			// Adapt size
+			if(GRAY && frameCam.channels() == 3)
+				cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
+			
 			if(RESIZE)
 				cv::resize(frameCam, frameCamResized, frameCamResized.size());
 			else
 				frameCamResized = frameCam;
 			
-			// Received
-			server->read(msg, idClient);
-			
-			// Answer
-			if(msg.isValide()) {
+			// Need an answer ?
+			if(server->read(msg, idClient)) {
 				switch(msg.getAction()) {
 					// Client quit
 					case BIN_QUIT:
@@ -112,59 +104,41 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 					// Send a frame
 					case BIN_GAZO: 
 					{	
-						try {
-							// Compress to jpg with turbojpeg or opencv
-							if(_jpegCompressor == NULL) {
-								cv::imencode(
-									format, 		// Extension, std::string
-									frameCamResized,
-									buf, 			// Data out, vector<char>
-									params		// Jpeg copmression, vector<int>
-								);
-								msg.set(BIN_GAZO, buf.size(), (const char*)buf.data());
-							}
-							else {	
-								const int TJ_FORMAT = GRAY ? TJPF_GRAY : TJPF_BGR;
-								const int TJ_SUBSAMP = GRAY ? TJSAMP_GRAY : TJSAMP_420;
-								
-								tjCompress2(
-									_jpegCompressor, 
-									frameCamResized.data, 	// ptr to data, const uchar *
-									frameCamResized.cols, 	// width
-									TJPAD(frameCamResized.cols * tjPixelSize[TJ_FORMAT]), // bytes per line
-									frameCamResized.rows,	// height
-									TJ_FORMAT, 		// pixel format
-									&buff, 			// ptr to buffer, unsigned char **
-									&bufSize, 		// ptr to buffer size, unsigned long *
-									TJ_SUBSAMP,		// chrominace sub sampling
-									QUALITY, 		// quality, int
-									0 					// flags
-								);
-								msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
-							}
-							
-							// Write a message, even if encodage failed (it will be null then).
-							server->write(msg, idClient);
-						}
-						catch(...) {
-							std::cout << "Exception throw" << std::endl;
-							msg.clear();
-							server->write(msg, idClient);
-						}
+						const int TJ_FORMAT = GRAY ? TJPF_GRAY : TJPF_BGR;
+						const int TJ_SUBSAMP = GRAY ? TJSAMP_GRAY : TJSAMP_420;
 						
-						iFrameSend++;
+						tjCompress2 (
+							_jpegCompressor, 
+							frameCamResized.data, 	// ptr to data, const uchar *
+							frameCamResized.cols, 	// width
+							TJPAD(frameCamResized.cols * tjPixelSize[TJ_FORMAT]), // bytes per line
+							frameCamResized.rows,	// height
+							TJ_FORMAT, 		// pixel format
+							&buff, 			// ptr to buffer, unsigned char **
+							&bufSize, 		// ptr to buffer size, unsigned long *
+							TJ_SUBSAMP,		// chrominace sub sampling
+							QUALITY, 		// quality, int
+							0 					// flags
+						);
+						msg.set(BIN_GAZO, (size_t)bufSize, (const char*)buff);
+						
+						// Write a message, even if encodage failed (it will be null then).
+						server->write(msg, idClient);
 					}
 					break;
 				}
 
 			} // Msg.valide()
+			else 
+				break;
+
 		} // run
 		
 		server->closeSocket(idClient);
 		std::cout << "Client disconnected." << std::endl;
 		if(G_HANDLING)
 			std::cout << "Wait for clients";
-	}
+	} // G_HANDLING
 	
 	tjFree(buff);
 	tjDestroy(_jpegCompressor);
@@ -178,6 +152,9 @@ int main() {
 		pCap.reset();
 	
 	// Create server TCP
+	const int MAXPENDING = 5;
+	const int SOCKET_PORT = 3000;
+	
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	auto server = managerConnection.createServer(Socket::TCP, Socket::BLOCKING, SOCKET_PORT, MAXPENDING);
@@ -194,7 +171,7 @@ int main() {
 		
 		int mn = clock()/60/1000;
 		int sec = (clock()/1000%60);
-		std::cout << (mn < 10 ? "0" : "") << mn << "'" << (sec < 10 ? "0" : "") << sec << std::endl;
+		std::cout << std::endl << (mn < 10 ? "0" : "") << mn << "'" << (sec < 10 ? "0" : "") << sec << std::endl;
 	}
 	
 	// Wait to finish with the client

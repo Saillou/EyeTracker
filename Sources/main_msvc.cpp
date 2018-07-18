@@ -31,57 +31,57 @@ int main(int argc, char* argv[]) {
 	else
 		std::cout << "Connected." << std::endl;
 	
-	// -- Create variables
+	// -- Init decompresor
 	tjhandle _jpegDecompressor = tjInitDecompress();
-	BinMessage msg;
+	if(_jpegDecompressor == NULL){
+		std::cout << "Libjpeg-turbo not loaded" << std::endl;
+		return 0;
+	}
 	
 	// -- Start communication
+	BinMessage msg;
+	
 	// Ask frame info		
 	std::cout << "Search info" << std::endl;
 	msg.set(BIN_INFO, "");
 	sock->write(msg);
 	
 	// Answer	
-	sock->read(msg);
-	if(msg.isValide()) {
+	if(sock->read(msg)) {
 		CmdMessage cmd(Message::To_string(msg.getData()));
-		
 		const size_t WIDTH 		= Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second);
 		const size_t HEIGHT 		= Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second);
 		const size_t CHANNEL 	= Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second);
 		
-		cv::Mat frame 			= cv::Mat::zeros(HEIGHT, WIDTH, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
-		cv::Mat frameRes 		= cv::Mat::zeros(480, 640, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
-		clock_t lastClock 	= clock();
-		size_t nbFrames 		= 0;
-		
 		if(WIDTH*CHANNEL*HEIGHT > 0) {
+			cv::Mat frame 			= cv::Mat::zeros(HEIGHT, WIDTH, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
+			cv::Mat frameRes 		= cv::Mat::zeros(480, 640, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
+			clock_t lastClock 	= clock();
+			size_t nbFrames 		= 0;
+		
 			while(cv::waitKey(1) != 27) {
 				// Ask Frame	
 				msg.set(BIN_GAZO, "");
-				
-				if(!sock->write(msg))
-					continue;
+				if(!sock->write(msg)) {
+					std::cout << "Server disconnected." << std::endl;
+					break;
+				}
 				
 				// Answer
-				if(!sock->read(msg))
-					continue;
-				
-				if(msg.isValide()) {
+				if(sock->read(msg)) {
 					if(msg.getSize() == 0) {
 						std::cout << "size null" << std::endl;
 						break;
 					}
 					
-					if(_jpegDecompressor == NULL)
-						cv::imdecode(msg.getData(), CHANNEL == 1 ? CV_LOAD_IMAGE_GRAYSCALE : CV_LOAD_IMAGE_COLOR, &frame);
-					else {
-						tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, CHANNEL == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
+					tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), msg.getSize(), frame.data, WIDTH, 0, HEIGHT, CHANNEL == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
+					if(!frame.empty()) {
+						cv::resize(frame, frameRes, frameRes.size());
+						cv::imshow("Frame(res)", frameRes);
+						nbFrames++;
 					}
-					cv::resize(frame, frameRes, frameRes.size());
-					cv::imshow("Frame(res)", frameRes);
 					
-					nbFrames++;
+					// Fps compute
 					clock_t thisClock = clock();
 					if(thisClock - lastClock > 1000) {
 						std::cout << "Fps: " << 1000.0*nbFrames/(thisClock - lastClock) << std::endl;
@@ -89,15 +89,9 @@ int main(int argc, char* argv[]) {
 						nbFrames = 0;
 					}
 				}
-				else {
-					std::cout << "Message invalide" << std::endl;
-				}
 			}	
 			
 		}
-	}
-	else {
-		std::cout << "Message invalide" << std::endl;
 	}
 	
 	// Quit
@@ -107,7 +101,6 @@ int main(int argc, char* argv[]) {
 	
 	// -- End
 	tjDestroy(_jpegDecompressor);
-
-	std::cout << "Destroy" << std::endl;
+	
 	return 0;
 }

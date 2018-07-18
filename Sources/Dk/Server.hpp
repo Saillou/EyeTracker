@@ -15,7 +15,9 @@ public:
 	void closeSocket(int& idSocket);
 	void closeAll();
 	
-private:
+protected:
+	// Methods
+	
 	// Members
 	size_t _maxPending;
 	std::vector<int> _idScketsConnected;

@@ -14,7 +14,7 @@
 	typedef int SOCKET_LENGTH;
 #endif
 
-#ifndef USE_MSVC 
+#ifndef _MSC_VER  
 	#include <unistd.h>
 #endif
 
@@ -50,7 +50,7 @@ public:
 	bool read(Protocole::BinMessage& msg, int idSocket = -1) const;
 	bool write(Protocole::BinMessage& msg, int idSocket = -1) const;
 	
-	Accessiblity waitForAccess(unsigned long timeoutMs) const;
+	Accessiblity waitForAccess(unsigned long timeoutMs = 0, int socketId = -1) const;
 	
 	// Setters
 	
@@ -72,7 +72,7 @@ public:
 	
 protected:
 	// Methods
-	int _changeMode(const CONNECTION_MODE mode);
+	int _changeMode(const CONNECTION_MODE mode, int socketId = -1);
 	
 	// Members
 	std::string _ipAdress;

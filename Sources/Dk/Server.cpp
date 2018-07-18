@@ -75,31 +75,22 @@ int Server::waitClient(long ms) {
 			criticError = true;
 			
 			// Maybe we can solve the error
-			if(clientId > 0) {
-				#ifdef _WIN32
-					int error = WSAGetLastError();
-					
-					switch(error) {
-						case WSAEWOULDBLOCK: // Only triggered during not_blocking operations
-							{ // Wait to be connected and check readable
-								auto info = waitForAccess(ms);
-								criticError = info.errorCode < 0;
-							}
-						break;
-						
-						default:
-							std::cout << "Error not treated: " << error << std::endl;
-						break;
+#ifdef _WIN32
+			int error = WSAGetLastError();
+			
+			switch(error) {
+				case WSAEWOULDBLOCK: // Only triggered during not_blocking operations
+					{ // Wait to be connected and check readable
+						auto info = waitForAccess(ms);
+						criticError = info.errorCode < 0;
 					}
-				#endif
+				break;
 				
-				if(criticError) {
-					// Should refuse socket
-					
-					// Close it
-					closeSocket(clientId);
-				}
+				default:
+					std::cout << "Error not treated: " << error << std::endl;
+				break;
 			}
+#endif
 		}
 		
 		// Put back the socket in the defined mode
@@ -113,13 +104,12 @@ int Server::waitClient(long ms) {
 		// Read a message connect ? 
 	}
 	
-	// Add to list
-	if(clientId > 0) {
-		if(ms > 0 && _mode == Socket::BLOCKING) {
-			unsigned long ul = 0; // Parameter for FIONBIO
-			ioctlsocket(clientId, FIONBIO, &ul);
-		}
+	// Everything is correct
+	if(clientId > 0) {		
+		// Want same mode as server
+		_changeMode(_mode, clientId);
 		
+		// Add to list
 		_idScketsConnected.push_back(clientId);
 	}
 	
@@ -137,11 +127,12 @@ void Server::closeSocket(int& idSocket) {
 		}
 		
 		shutdown(idSocket, CLOSE_ER); // No emission or reception
-#ifndef USE_MSVC 
+#ifndef _MSC_VER  
 		close(idSocket);
 #else
 		closesocket(idSocket);
 #endif
+
 		idSocket = -1;
 	}
 }
@@ -150,3 +141,4 @@ void Server::closeAll() {
 	for(auto& idSocket: _idScketsConnected)
 		closeSocket(idSocket);
 }
+
