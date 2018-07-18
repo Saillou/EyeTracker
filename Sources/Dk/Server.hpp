@@ -10,13 +10,15 @@ public:
 	~Server();
 	
 	// Methods
-	bool initialize(const CONNECTION_TYPE type) override;
-	int waitClient();
+	bool initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode) override;
+	int waitClient(long ms = -1);
 	void closeSocket(int& idSocket);
+	void closeAll();
 	
 private:
 	// Members
 	size_t _maxPending;
+	std::vector<int> _idScketsConnected;
 };
 
 #endif

@@ -36,7 +36,7 @@ bool ManagerConnection::initialize() {
 }
 
 
-std::shared_ptr<Server> ManagerConnection::createServer(const Socket::CONNECTION_TYPE type, const int port, const int pending) {
+std::shared_ptr<Server> ManagerConnection::createServer(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const int port, const int pending) {
 	// Context ok ?
 	if(!_initialized) {
 		std::cout << "Manager not initialized." << std::endl;
@@ -45,12 +45,12 @@ std::shared_ptr<Server> ManagerConnection::createServer(const Socket::CONNECTION
 	
 	// Initialize the server
 	auto serv = std::make_shared<Server>(port, pending);
-	if(!serv->initialize(type))
+	if(!serv->initialize(type, mode))
 		serv.reset();
 	
 	return serv;
 }
-std::shared_ptr<Socket> ManagerConnection::connectTo(const Socket::CONNECTION_TYPE type, const std::string& ipAdress, const int port) {
+std::shared_ptr<Socket> ManagerConnection::connectTo(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const std::string& ipAdress, const int port) {
 	// Context ok ?
 	if(!_initialized) {
 		std::cout << "Manager not initialized." << std::endl;
@@ -59,7 +59,7 @@ std::shared_ptr<Socket> ManagerConnection::connectTo(const Socket::CONNECTION_TY
 	
 	// Initialize the socket
 	auto sock = std::make_shared<Socket>(ipAdress, port);
-	if(!sock->initialize(type))
+	if(!sock->initialize(type, mode))
 		sock.reset();
 	
 	return sock;
@@ -68,4 +68,10 @@ std::shared_ptr<Socket> ManagerConnection::connectTo(const Socket::CONNECTION_TY
 // Getters
 bool ManagerConnection::isInitialized() const {
 	return _initialized;
+}
+
+// Statics
+void ManagerConnection::wait(int ms) {
+	clock_t c0 = clock();
+	while(clock() - c0 < ms);
 }

@@ -9,26 +9,24 @@ Server::Server(const int port, const size_t maxPending) :
 }
 
 Server::~Server() {
+	closeAll();
 }
 
 // Methods
-bool Server::initialize(const CONNECTION_TYPE type)	{
+bool Server::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	{
 	_type = type;
+	_mode = mode;
 	
 	// Type define id
-	if(_type == NONE) {
-		std::cout << "Please, set a type for server." << std::endl;
+	if(_type == NONE)
 		return false;
-	}
-	else	if(_type == TCP) {
+	else	if(_type == TCP)
 		_idSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-	}
-	else	if(_type == UDP) {
+	else	if(_type == UDP)
 		_idSocket = socket(PF_INET, SOCK_DGRAM, 0);
-	}
 	else {
 		_type = NONE;
-		std::cout << "Type not recognized for server." << std::endl;
+		std::cout << "[Servers] Type not recognized." << std::endl;
 		return false;
 	}
 	
@@ -57,18 +55,56 @@ bool Server::initialize(const CONNECTION_TYPE type)	{
 	return true;
 }
 
-int Server::waitClient() {
+int Server::waitClient(long ms) {
 	int clientId = -1;
 	
-	if(_idSocket <= 0 || _type == NONE){
-		std::cout << "Server not initialized" << std::endl;
+	if(_idSocket <= 0 || _type == NONE) {
+		std::cout << " Server not initialized" << std::endl;
 	}
 	else if(_type == TCP) {
 		struct sockaddr_in clientEcho;
 		SOCKET_LENGTH len = sizeof(clientEcho);
 			
+		if(ms > 0) {
+			// Need the socket in non blocking mode to be able to timeout
+			_changeMode(Socket::NOT_BLOCKING);
+		}
+		
+		bool criticError = false;
 		if((clientId = accept(_idSocket, (struct sockaddr*)&clientEcho, &len)) == SOCKET_ERROR) {
-			std::cout << "Failed to accept the client" << std::endl;
+			criticError = true;
+			
+			// Maybe we can solve the error
+			if(clientId > 0) {
+				#ifdef _WIN32
+					int error = WSAGetLastError();
+					
+					switch(error) {
+						case WSAEWOULDBLOCK: // Only triggered during not_blocking operations
+							{ // Wait to be connected and check readable
+								auto info = waitForAccess(ms);
+								criticError = info.errorCode < 0;
+							}
+						break;
+						
+						default:
+							std::cout << "Error not treated: " << error << std::endl;
+						break;
+					}
+				#endif
+				
+				if(criticError) {
+					// Should refuse socket
+					
+					// Close it
+					closeSocket(clientId);
+				}
+			}
+		}
+		
+		// Put back the socket in the defined mode
+		if(ms > 0 && _mode == Socket::BLOCKING) {
+			_changeMode(Socket::BLOCKING);
 		}
 	}
 	else if(_type == UDP) {
@@ -77,16 +113,40 @@ int Server::waitClient() {
 		// Read a message connect ? 
 	}
 	
+	// Add to list
+	if(clientId > 0) {
+		if(ms > 0 && _mode == Socket::BLOCKING) {
+			unsigned long ul = 0; // Parameter for FIONBIO
+			ioctlsocket(clientId, FIONBIO, &ul);
+		}
+		
+		_idScketsConnected.push_back(clientId);
+	}
+	
 	return clientId;
 }
 
 void Server::closeSocket(int& idSocket) {
-	if(_idSocket > 0) {
+	if(idSocket > 0) {
+		// Remove from list
+		for(int i = 0; i < _idScketsConnected.size(); i++) {
+			if(_idScketsConnected[i] == idSocket) {
+				_idScketsConnected.erase(_idScketsConnected.begin() + i);
+				break;
+			}
+		}
+		
 		shutdown(idSocket, CLOSE_ER); // No emission or reception
 #ifndef USE_MSVC 
 		close(idSocket);
 #else
-	_idSocket = -1;
+		closesocket(idSocket);
 #endif
+		idSocket = -1;
 	}
+}
+
+void Server::closeAll() {
+	for(auto& idSocket: _idScketsConnected)
+		closeSocket(idSocket);
 }

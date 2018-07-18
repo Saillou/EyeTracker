@@ -2,12 +2,18 @@
 setlocal EnableDelayedExpansion
 
 :: Define working directory
-set source=Source
-set object=Obj
+set source=..\Sources
+set object=Objects
 set release=Release
-set exeName=Test
+set exeName=Socket
+
 
 cd /d %~dp0
+
+if not exist Windows_msvc (
+	mkdir Windows_msvc
+)
+cd Windows_msvc
 
 if not exist %object% (
 	mkdir %object%
@@ -38,13 +44,11 @@ call vcvars64.bat
 if exist %object%\*.obj (
 	del %object%\*.obj
 )
-if exist %release%\%exeName%.exe (
-	del %release%\%exeName%.exe
-)
 
 ::Compile sources
-cl	/c /EHsc ^
-	%source%\main.cpp ^
+cl	/c /EHa ^
+	%source%\main_msvc.cpp ^
+	%source%\main_msvc_server.cpp ^
 	%source%\Dk\Protocole.cpp ^
 	%source%\Dk\Socket.cpp ^
 	%source%\Dk\Server.cpp ^
@@ -56,9 +60,9 @@ cl	/c /EHsc ^
 	
 :: If objects were created, try to link
 if exist %object%\*.obj (
-	:: Link sources
+	:: Link sources for Client
 	link /SUBSYSTEM:CONSOLE ^
-		%object%\main.obj ^
+		%object%\main_msvc.obj ^
 		%object%\Protocole.obj ^
 		%object%\Socket.obj ^
 		%object%\Server.obj ^
@@ -73,15 +77,35 @@ if exist %object%\*.obj (
 		/LIBPATH:D:\Dev\Opencv3\opencv\build_vc12\lib\Release ^
 		/LIBPATH:D:\Dev\LibJpeg\build\Release ^
 		/MACHINE:X64 /INCREMENTAL:NO /NOLOGO /DYNAMICBASE /ERRORREPORT:PROMPT ^
-		/out:%release%\%exeName%.exe
+		/out:%release%\%exeName%_client.exe
+		
+	:: Link sources for Server
+	link /SUBSYSTEM:CONSOLE ^
+		%object%\main_msvc_server.obj ^
+		%object%\Protocole.obj ^
+		%object%\Socket.obj ^
+		%object%\Server.obj ^
+		%object%\ManagerConnection.obj ^
+		opencv_videoio320.lib ^
+		opencv_highgui320.lib ^
+		opencv_imgcodecs320.lib ^
+		opencv_imgproc320.lib ^
+		opencv_core320.lib ^
+		turbojpeg.lib ^
+		ws2_32.lib ^
+		User32.lib ^
+		/LIBPATH:D:\Dev\Opencv3\opencv\build_vc12\lib\Release ^
+		/LIBPATH:D:\Dev\LibJpeg\build\Release ^
+		/MACHINE:X64 /INCREMENTAL:NO /NOLOGO /DYNAMICBASE /ERRORREPORT:PROMPT ^
+		/out:%release%\%exeName%_server.exe
 )
 
 :: If created, execute software
-if exist %release%\%exeName%.exe (
-	echo Execute
-	echo.
-	%release%\%exeName%.exe
-) else echo No executable found.
+REM if exist %release%\%exeName%.exe (
+	REM echo Execute
+	REM echo.
+	REM %release%\%exeName%.exe
+REM ) else echo No executable found.
 	
 echo.&pause&goto:eof
 

@@ -20,11 +20,14 @@ public:
 	
 	// Methods
 	bool initialize();
-	std::shared_ptr<Server> createServer(const Socket::CONNECTION_TYPE type, const int port = 80, const int pending = 10);
-	std::shared_ptr<Socket> connectTo(const Socket::CONNECTION_TYPE type, const std::string& ipAdress = "localhost", const int port = 80);
+	std::shared_ptr<Server> createServer(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const int port = 80, const int pending = 10);
+	std::shared_ptr<Socket> connectTo(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const std::string& ipAdress = "localhost", const int port = 80);
 	
 	// Getters
 	bool isInitialized() const;
+	
+	// Statics
+	static void wait(int ms);
 	
 private:
 	// Members
