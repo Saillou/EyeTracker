@@ -50,7 +50,7 @@ private:
 	}
 	
 	// Members
-	_timePoint _tRef; // Creation of the chrono
+	_timePoint _tRef; // Memorise time of the chrono's birth / last reset
 	_timePoint _tBeg;
 	_timePoint _tEnd;
 };
