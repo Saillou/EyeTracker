@@ -18,17 +18,12 @@
 #define MULTITHREAD 0
 
 std::atomic<bool> G_HANDLING(true);
+std::mutex G_mutexFrame;
 
 using namespace Protocole;
 
-void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap) {
+void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::Mat> pFrame) {
 	const int QUALITY 	= 80;
-
-	// Camera
-	if(ptrCap == nullptr) {
-		std::cout << "Camera not opened" << std::endl;
-		return;
-	}
 	
 	// Encodage TURBO-JPG
 	tjhandle _jpegCompressor = tjInitCompress();
@@ -55,9 +50,6 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		std::cout << std::endl << "Handle new client " << idClient << std::endl;
 		BinMessage msg;
 		
-		// Define frame expected
-		cv::Mat frame = cv::Mat::zeros(480, 640, CV_8UC3);
-		
 		// -- Handle client --
 #ifdef MULTITHREAD
 		std::vector<std::shared_ptr<Server::ThreadWrite>> threadsRunning;
@@ -66,9 +58,12 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		
 		while(run) {
 			// Get the frame
-			*ptrCap >> frame;
-			if(frame.empty())
+			G_mutexFrame.lock();
+			if(pFrame == nullptr || pFrame->empty())
 				continue;
+			
+			cv::Mat frame = pFrame->clone();
+			G_mutexFrame.unlock();
 			
 			// Need an answer ?
 			if(server->read(msg, idClient)) {
@@ -151,10 +146,12 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 
 
 int main() {
-	// Try to open the cam
+	// Open the cam
+	std::shared_ptr<cv::Mat> pFrame = std::make_shared<cv::Mat>(480, 640, CV_8UC3, cv::Scalar::all(0));
 	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
+	
 	if(!pCap->isOpened())
-		pCap.reset();
+		return 0;
 	
 	// Create server TCP
 	const int MAXPENDING = 5;
@@ -165,19 +162,25 @@ int main() {
 	auto server = managerConnection.createServer(Socket::TCP, Socket::BLOCKING, SOCKET_PORT, MAXPENDING);
 
 	// Handle one client
-	std::thread handleThread(handleClient, server, pCap);
+	std::thread handleThread(handleClient, server, pFrame);
 	
 	bool run = true;
-	const clock_t TIME_WAIT = 1000;
-	while(run) {
-		// Wait 
-		clock_t c0 = clock();
-		while(clock() - c0 < TIME_WAIT) 
-			run = (GetKeyState(VK_SPACE) & 0x8000) == 0;
+	Chronometre chrono;		
+	
+	while((GetKeyState(VK_SPACE) & 0x8000) == 0) {
+		// Update frame
+		G_mutexFrame.lock();
+		*pCap >> *pFrame;
+		G_mutexFrame.unlock();
 		
-		int mn = clock()/60/1000;
-		int sec	= (clock()/1000%60);
-		std::cout << std::endl << (mn < 10 ? "0" : "") << mn << "'" << (sec < 10 ? "0" : "") << sec << std::endl;
+		// Display info
+		if(chrono.elapsed_ms() >= 1000) { 			
+			chrono.beg();
+			int clockMs = (int)chrono.clock_ms();
+			int mn 	= clockMs/60/1000;
+			int sec	= clockMs/1000%60;
+			std::cout << std::endl << (mn < 10 ? "0" : "") << mn << "'" << (sec < 10 ? "0" : "") << sec << std::endl;
+		}
 	}
 	
 	// Wait to finish with the client

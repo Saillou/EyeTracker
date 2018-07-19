@@ -31,6 +31,9 @@ public:
 	double ms() const {
 		return _diffMs(_tBeg, _tEnd);
 	}
+	double elapsed_ms() const {
+		return _diffMs(_tBeg, _now());
+	}
 	
 	// Static methods
 	static void wait(int ms) {

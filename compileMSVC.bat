@@ -47,9 +47,9 @@ if exist %object%\*.obj (
 
 ::Compile sources 
 cl	/c /EHa /W3 ^
+	%source%\main_msvc_server.cpp ^
 	%source%\Dk\VideoStream.cpp ^
 	%source%\main_msvc.cpp ^
-	%source%\main_msvc_server.cpp ^
 	%source%\Dk\Socket.cpp ^
 	%source%\Dk\Server.cpp ^
 	%source%\Dk\Protocole.cpp ^
@@ -62,11 +62,11 @@ cl	/c /EHa /W3 ^
 if exist %object%\*.obj (
 	:: Link sources for Client
 	link /SUBSYSTEM:CONSOLE ^
-		%object%\VideoStream.obj ^
 		%object%\main_msvc.obj ^
 		%object%\Protocole.obj ^
 		%object%\Socket.obj ^
 		%object%\Server.obj ^
+		%object%\VideoStream.obj ^
 		%object%\ManagerConnection.obj ^
 		opencv_videoio320.lib ^
 		opencv_highgui320.lib ^
