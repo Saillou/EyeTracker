@@ -15,7 +15,7 @@
 #include "Dk/ManagerConnection.hpp"
 #include "Dk/Chronometre.hpp"
 
-#define MULTITHREAD 1
+#define MULTITHREAD 0
 
 std::atomic<bool> G_HANDLING(true);
 
@@ -23,8 +23,6 @@ using namespace Protocole;
 
 void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCapture> ptrCap) {
 	const int QUALITY 	= 80;
-	const bool RESIZE 	= false;
-	const bool GRAY 	= false;
 
 	// Camera
 	if(ptrCap == nullptr) {
@@ -58,8 +56,7 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		BinMessage msg;
 		
 		// Define frame expected
-		cv::Mat frameCam 				= cv::Mat::zeros(480, 640, CV_8UC3);
-		cv::Mat frameCamResized	= RESIZE ? cv::Mat::zeros(240, 480, GRAY ? CV_8UC1 : CV_8UC3) : cv::Mat::zeros(frameCam.rows, frameCam.cols, frameCam.type());
+		cv::Mat frame = cv::Mat::zeros(480, 640, CV_8UC3);
 		
 		// -- Handle client --
 #ifdef MULTITHREAD
@@ -69,17 +66,9 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		
 		while(run) {
 			// Get the frame
-			*ptrCap >> frameCam;
-			if(frameCam.empty())
+			*ptrCap >> frame;
+			if(frame.empty())
 				continue;
-			
-			if(GRAY && frameCam.channels() == 3)
-				cv::cvtColor(frameCam, frameCam, cv::COLOR_BGR2GRAY);
-			
-			if(RESIZE)
-				cv::resize(frameCam, frameCamResized, frameCamResized.size());
-			else
-				frameCamResized = frameCam;
 			
 			// Need an answer ?
 			if(server->read(msg, idClient)) {
@@ -95,9 +84,9 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 					case BIN_INFO:
 					{ 
 						CmdMessage cmd;
-						cmd.addCommand(CMD_HEIGHT, 	std::to_string(frameCamResized.rows));
-						cmd.addCommand(CMD_WIDTH, 	std::to_string(frameCamResized.cols));
-						cmd.addCommand(CMD_CHANNEL,	std::to_string(frameCamResized.channels()));
+						cmd.addCommand(CMD_HEIGHT, 	std::to_string(frame.rows));
+						cmd.addCommand(CMD_WIDTH, 	std::to_string(frame.cols));
+						cmd.addCommand(CMD_CHANNEL,	std::to_string(frame.channels()));
 						
 						msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
 						server->write(msg, idClient);
@@ -107,19 +96,16 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 					// Send a frame
 					case BIN_GAZO: 
 					{	
-						const int TJ_FORMAT = GRAY ? TJPF_GRAY : TJPF_BGR;
-						const int TJ_SUBSAMP = GRAY ? TJSAMP_GRAY : TJSAMP_420;
-						
 						tjCompress2 (
 							_jpegCompressor, 
-							frameCamResized.data, 	// ptr to data, const uchar *
-							frameCamResized.cols, 	// width
-							TJPAD(frameCamResized.cols * tjPixelSize[TJ_FORMAT]), // bytes per line
-							frameCamResized.rows,	// height
-							TJ_FORMAT, 		// pixel format
+							frame.data, 	// ptr to data, const uchar *
+							frame.cols, 	// width
+							TJPAD(frame.cols * tjPixelSize[TJPF_BGR]), // bytes per line
+							frame.rows,	// height
+							TJPF_BGR, 		// pixel format
 							&buff, 			// ptr to buffer, unsigned char **
 							&bufSize, 		// ptr to buffer size, unsigned long *
-							TJ_SUBSAMP,		// chrominace sub sampling
+							TJSAMP_420,	// chrominace sub sampling
 							QUALITY, 		// quality, int
 							0 					// flags
 						);
