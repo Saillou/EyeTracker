@@ -53,8 +53,8 @@ namespace Protocole {
 			
 		// Methods
 		void unserialize(const char *data, const size_t nb) 	override;
-		std::vector<char> serialize() const 							override;
-		void clear() 																	override;
+		std::vector<char> serialize() const 						override;
+		void clear() 															override;
 		
 		bool isValide() const;
 		

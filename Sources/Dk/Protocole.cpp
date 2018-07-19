@@ -110,7 +110,7 @@ const std::vector<char>& BinMessage::getData() const {
 std::vector<char> BinMessage::Write_256(size_t valueToConvert, const size_t nbOfSymbole) {
 	std::vector<char> values(nbOfSymbole, 0);
 
-	for(int i = nbOfSymbole-1; i >= 0 && valueToConvert > 0; i--) {
+	for(int i = (int)nbOfSymbole-1; i >= 0 && valueToConvert > 0; i--) {
 		values[i] = valueToConvert % 256;
 		valueToConvert /= 256;
 	}

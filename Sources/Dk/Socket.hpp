@@ -14,12 +14,15 @@
 	typedef int SOCKET_LENGTH;
 #endif
 
+#ifndef _MSC_VER  
+	#include <unistd.h>
+#endif
+
 #ifndef SOCKET_ERROR
 	#define SOCKET_ERROR -1
 #endif
 
 #include <iostream>
-#include <unistd.h>
 #include "Protocole.hpp"
 
 class Socket {
@@ -28,21 +31,32 @@ public:
 	enum CONNECTION_TYPE {
 		NONE, UDP, TCP
 	};
+	enum CONNECTION_MODE {
+		BLOCKING, NOT_BLOCKING
+	};
+	
+	struct Accessiblity {
+		bool readable;
+		bool writable;
+		int errorCode;
+	};
 	
 	// Constructors
-	Socket(const std::string& ipAdress = "localhost", const int port = 80);
+	Socket(const std::string& ipAdress = "localhost", const unsigned short port = 80);
 	virtual ~Socket();
 	
 	// Methods
-	virtual bool initialize(const CONNECTION_TYPE type);
+	virtual bool initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode);
 	bool read(Protocole::BinMessage& msg, int idSocket = -1) const;
-	bool write(Protocole::BinMessage& msg, int idSocket = -1) const;
+	bool write(const Protocole::BinMessage& msg, int idSocket = -1) const;
+	  
+	Accessiblity waitForAccess(unsigned long timeoutMs = 0, int socketId = -1) const;
 	
 	// Setters
 	
 	// Getters
 	const std::string& getIpAdress() const;
-	const int& getPort() const;
+	const unsigned short& getPort() const;
 	const int& getId() const;
 	const CONNECTION_TYPE& getType() const;
 	
@@ -57,11 +71,15 @@ public:
 	static const size_t BUFFER_SIZE_MAX = 1024;	
 	
 protected:
+	// Methods
+	int _changeMode(const CONNECTION_MODE mode, int socketId = -1);
+	
 	// Members
 	std::string _ipAdress;
-	int 			_port;
+	unsigned short	_port;
 	int 			_idSocket;
 	CONNECTION_TYPE _type;
+	CONNECTION_MODE _mode;
 };
 
 #endif

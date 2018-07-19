@@ -4,6 +4,7 @@
 #include <string.h>
 
 namespace Protocole {
+	static const size_t BIN_PING = 1346981447;
 	static const size_t BIN_INFO = 1229866575;
 	static const size_t BIN_GAZO = 1195465295; 
 	static const size_t BIN_MCMD = 1296256324;
