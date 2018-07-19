@@ -12,7 +12,7 @@ int main() {
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	
-	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.0", 3000), ManagerConnection::IpAdress("192.168.128.255", 3000), 1);	
+	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.20", 3000), ManagerConnection::IpAdress("192.168.128.50", 3000), 1);	
 	if(ipOpened.size() == 0)
 		return 0;
 	// -------------------------------------------------------------- //
@@ -49,7 +49,7 @@ int main() {
 
 		// Display info
 		if(chrono.clock_ms() >= 1000) { 			
-			std::cout << "Freq: " << video.getFpsRate() << " hz \t | \t Lag: " << video.getLag() << " ms." << std::endl;
+			std::cout << "Freq: " << ((int)(10*video.getFpsRate()))/10.0 << " hz \t | \t Lag: " << video.getLag() << " ms." << std::endl;
 			chrono.reset();
 		}
 		

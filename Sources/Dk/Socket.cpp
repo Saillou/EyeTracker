@@ -62,13 +62,13 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 		switch(error) {
 			case WSAEWOULDBLOCK: // Only triggered during not_blocking operations				
 				{ // Wait to be connected and check writable
-					auto info = waitForAccess(5);
+					auto info = waitForAccess(30);
 					criticError = info.errorCode <= 0 || !info.writable;
 				}
 			break;
 			
 			case WSAETIMEDOUT:
-				// Timeout.. No stream message as we will use this one a lot.
+				std::cout << "Server timeout." << std::endl;
 			break;
 			
 			case WSAEISCONN:
