@@ -70,12 +70,7 @@ bool ManagerConnection::isInitialized() const {
 	return _initialized;
 }
 
-// Statics
-void ManagerConnection::wait(int ms) {
-	clock_t c0 = clock();
-	while(clock() - c0 < ms);
-}
-std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress& ipBeg, const IpAdress& ipEnd, bool stopAtFirst) {	
+std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress& ipBeg, const IpAdress& ipEnd, int stopAfterNb) {	
 	// Determine delta port
 	int pBeg = ipBeg.getPort();
 	int pEnd = ipBeg.getPort();
@@ -108,7 +103,7 @@ std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress&
 			if(connectTo(Socket::TCP, Socket::NOT_BLOCKING, ipTested.toString(), port) != nullptr) {
 				ipAvailable.push_back(ipTested);
 
-				if(stopAtFirst)
+				if(stopAfterNb > 0 && ipAvailable.size() >= (int)stopAfterNb)
 					break;
 			}
 			

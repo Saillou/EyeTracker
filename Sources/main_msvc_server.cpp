@@ -13,6 +13,7 @@
 
 #include "Dk/Protocole.hpp"
 #include "Dk/ManagerConnection.hpp"
+#include "Dk/Chronometre.hpp"
 
 #define MULTITHREAD 1
 
@@ -49,7 +50,7 @@ void handleClient(std::shared_ptr<Server> server, std::shared_ptr<cv::VideoCaptu
 		
 		int idClient = server->waitClient(5);
 		if(idClient <= 0) { 
-			ManagerConnection::wait(350);
+			Chronometre::wait(350);
 			continue;
 		}
 		
@@ -185,7 +186,8 @@ int main() {
 	while(run) {
 		// Wait 
 		clock_t c0 = clock();
-		while(clock() - c0 < TIME_WAIT) run = !(GetKeyState(VK_SPACE) & 0x8000);
+		while(clock() - c0 < TIME_WAIT) 
+			run = (GetKeyState(VK_SPACE) & 0x8000) == 0;
 		
 		int mn = clock()/60/1000;
 		int sec	= (clock()/1000%60);

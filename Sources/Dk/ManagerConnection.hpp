@@ -56,14 +56,10 @@ public:
 	bool initialize();
 	std::shared_ptr<Server> createServer(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const int port = 80, const int pending = 10);
 	std::shared_ptr<Socket> connectTo(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const std::string& ipAdress = "localhost", const int port = 80);
-	std::vector<IpAdress> snif(const IpAdress& ipBeg, const IpAdress& ipEnd, bool stopAtFirst = false);
+	std::vector<IpAdress> snif(const IpAdress& ipBeg, const IpAdress& ipEnd, int stopAfterNb = -1);
 	
 	// Getters
-	bool isInitialized() const;
-	
-	// Statics
-	static void wait(int ms);
-	
+	bool isInitialized() const;	
 	
 private:	
 	// Members
