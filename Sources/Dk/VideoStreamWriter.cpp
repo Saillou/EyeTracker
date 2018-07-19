@@ -1,6 +1,6 @@
 #include "VideoStreamWriter.hpp"
 
-// #define MULTITHREAD 1
+//#define MULTITHREAD 1
 
 using namespace Dk;
 using namespace Protocole;
@@ -12,9 +12,7 @@ VideoStreamWriter::VideoStreamWriter(ManagerConnection& managerConnection, const
 	_buff(tjAlloc(10000)), // Random init, tj will carry on the allocation
 	_bufSize(0), 				// Real size of the buffer use by tj
 	_valide(false),
-	_mutexRun(std::mutex()),
 	_running(false),
-	_mutexFrame(std::mutex()),
 	_frameToPublish(cv::Mat()),
 	_threadClients(nullptr)
 {

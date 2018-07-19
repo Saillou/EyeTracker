@@ -11,11 +11,8 @@ VideoStream::VideoStream(ManagerConnection& managerConnection, const ManagerConn
 	_frame(cv::Mat()),
 	_valide(false),
 	_state(RunningState::NOT_DEFINED),
-	_mutexState(std::mutex()),
 	_fps(0.0),
-	_mutexFps(std::mutex()),
 	_lag(0.0),
-	_mutexLag(std::mutex()),
 	_threadRun(nullptr)
 {
 	// Check intialization

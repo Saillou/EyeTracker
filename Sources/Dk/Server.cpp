@@ -57,9 +57,11 @@ bool Server::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 
 int Server::waitClient(long ms) {
 	int clientId = -1;
+	bool criticError = false;
 	
 	if(_idSocket <= 0 || _type == NONE) {
 		std::cout << " Server not initialized" << std::endl;
+		criticError = true;
 	}
 	else if(_type == TCP) {
 		struct sockaddr_in clientEcho;
@@ -70,7 +72,6 @@ int Server::waitClient(long ms) {
 			_changeMode(Socket::NOT_BLOCKING);
 		}
 		
-		bool criticError = false;
 		if((clientId = (int)accept(_idSocket, (struct sockaddr*)&clientEcho, &len)) == SOCKET_ERROR) {
 			criticError = true;
 			
@@ -102,10 +103,11 @@ int Server::waitClient(long ms) {
 		// What to do?
 		// Nothing to wait ?
 		// Read a message connect ? 
+		criticError = true; // Not implemented yet.
 	}
 	
 	// Everything is correct
-	if(clientId > 0) {		
+	if(!criticError && clientId > 0) {		
 		// Want same mode as server
 		_changeMode(_mode, clientId);
 		
@@ -119,7 +121,7 @@ int Server::waitClient(long ms) {
 void Server::closeSocket(int& idSocket) {
 	if(idSocket > 0) {
 		// Remove from list
-		for(int i = 0; i < _idScketsConnected.size(); i++) {
+		for(size_t i = 0; i < _idScketsConnected.size(); i++) {
 			if(_idScketsConnected[i] == idSocket) {
 				_idScketsConnected.erase(_idScketsConnected.begin() + i);
 				break;

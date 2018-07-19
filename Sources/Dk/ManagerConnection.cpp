@@ -103,7 +103,7 @@ std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress&
 			if(connectTo(Socket::TCP, Socket::NOT_BLOCKING, ipTested.toString(), port) != nullptr) {
 				ipAvailable.push_back(ipTested);
 
-				if(stopAfterNb > 0 && ipAvailable.size() >= (int)stopAfterNb)
+				if(stopAfterNb > 0 && (int)ipAvailable.size() >= stopAfterNb)
 					break;
 			}
 			

@@ -6,7 +6,7 @@ using namespace Protocole;
 Message::Message() {
 	// Is there something to do?
 }
-inline Message::~Message() {
+Message::~Message() {
 	// Is there something to do?
 }
 

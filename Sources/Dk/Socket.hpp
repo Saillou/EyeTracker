@@ -2,10 +2,12 @@
 #define SOCKET_H
 
 #ifdef __linux__ 
+	#include <sys/select.h>
 	#include <sys/socket.h>
 	#include <sys/types.h>
 	#include <netinet/in.h>	
 	#include <arpa/inet.h>
+	#include <fcntl.h>
 	
 	typedef unsigned int SOCKET_LENGTH;
 #elif _WIN32

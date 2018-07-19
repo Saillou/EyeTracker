@@ -90,6 +90,7 @@ declare -a Dk=(
 	"Protocole" 
 	"Server" 
 	"Socket"
+	"VideoStreamWriter"
 )
 declare compileDk=1
 declare fetchGithub=0

@@ -190,7 +190,7 @@ Socket::Accessiblity Socket::waitForAccess(unsigned long timeoutMs, int idSocket
 		idSocket = _idSocket;
 	
 	// Wait using select
-	const timeval timeout = {
+	struct timeval timeout = {
 		/* timeout.tv_sec = */(long)(timeoutMs / (long)1e3),
 		/* timeout.tv_usec = */(long)(timeoutMs * (long)1e3) % (long)1e6
 	};
