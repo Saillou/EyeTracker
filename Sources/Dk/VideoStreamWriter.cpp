@@ -1,7 +1,5 @@
 #include "VideoStreamWriter.hpp"
 
-//#define MULTITHREAD 1
-
 using namespace Dk;
 using namespace Protocole;
 
@@ -64,9 +62,7 @@ void VideoStreamWriter::_handleClient(int idClient) {
 	BinMessage msg;
 	
 	// -- Handle client --
-#ifdef MULTITHREAD
 	std::vector<std::shared_ptr<Server::ThreadWrite>> threadsRunning;
-#endif
 
 	bool clientQuitted = false;
 	while(!clientQuitted) {
@@ -122,30 +118,23 @@ void VideoStreamWriter::_handleClient(int idClient) {
 				msg.set(BIN_GAZO, (size_t)_bufSize, (const char*)_buff);
 				
 				// Write the message						
-#ifdef MULTITHREAD
 				threadsRunning.push_back(std::make_shared<Server::ThreadWrite>(_server, msg, idClient));
-#else
-				_server->write(msg, idClient);
-#endif
+				//_server->write(msg, idClient);
+
 			break;
 		} // Switch action
 		
 		// Delete threads that are finished (<=> inactive)
-#ifdef MULTITHREAD
 		threadsRunning.erase(
 			std::remove_if(threadsRunning.begin(), threadsRunning.end(), [](const std::shared_ptr<Server::ThreadWrite>& tw) {
 				return !tw->isActive();
 		}), threadsRunning.end());
-#endif
 
 	} // clientQuitted or error occured
 	
 	_server->closeSocket(idClient);
 	
-#ifdef MULTITHREAD
 	threadsRunning.clear();
-#endif
-
 	std::cout << "Client disconnected." << std::endl;	
 }
 
