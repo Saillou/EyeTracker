@@ -181,6 +181,9 @@ int main() {
 			int sec	= clockMs/1000%60;
 			std::cout << std::endl << (mn < 10 ? "0" : "") << mn << "'" << (sec < 10 ? "0" : "") << sec << std::endl;
 		}
+		
+		// Sleep a bit
+		Chronometre::wait(5);
 	}
 	
 	// Wait to finish with the client

@@ -52,6 +52,9 @@ int main() {
 			std::cout << "Freq: " << video.getFpsRate() << " hz \t | \t Lag: " << video.getLag() << " ms." << std::endl;
 			chrono.reset();
 		}
+		
+		// Sleep a bit
+		Chronometre::wait(5);
 	}
 	
 	video.release();
