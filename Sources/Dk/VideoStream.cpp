@@ -37,6 +37,9 @@ VideoStream::~VideoStream() {
 	
 	if(_jpegDecompressor != NULL)
 		tjDestroy(_jpegDecompressor);
+	
+	if(_threadRun != nullptr)
+		delete _threadRun;
 }
 
 // Methods

@@ -4,7 +4,6 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
-#include <atomic>
 
 #include <turbojpeg.h>
 
@@ -60,7 +59,7 @@ namespace Dk {
 		bool 	_valide;
 		
 		// Thread use
-		RunningState _state;
+		volatile RunningState _state;
 		std::mutex 	_mutexState;
 		
 		double _fps;

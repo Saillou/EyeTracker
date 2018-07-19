@@ -47,12 +47,13 @@ if exist %object%\*.obj (
 
 ::Compile sources 
 cl	/c /EHa /W3 ^
+	%source%\Dk\VideoStreamWriter.cpp ^
 	%source%\main_msvc_server.cpp ^
-	%source%\Dk\VideoStream.cpp ^
 	%source%\main_msvc.cpp ^
 	%source%\Dk\Socket.cpp ^
 	%source%\Dk\Server.cpp ^
 	%source%\Dk\Protocole.cpp ^
+	%source%\Dk\VideoStream.cpp ^
 	%source%\Dk\ManagerConnection.cpp ^
 	/I D:\Dev\Opencv3\opencv\build_vc12\include ^
 	/I D:\Dev\LibJpeg\libjpeg-turbo-1.5.2 ^
@@ -87,6 +88,7 @@ if exist %object%\*.obj (
 		%object%\Protocole.obj ^
 		%object%\Socket.obj ^
 		%object%\Server.obj ^
+		%object%\VideoStreamWriter.obj ^
 		%object%\ManagerConnection.obj ^
 		opencv_videoio320.lib ^
 		opencv_highgui320.lib ^
