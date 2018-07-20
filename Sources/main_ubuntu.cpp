@@ -28,7 +28,8 @@ int main() {
 
 	// ----------------- Update continuously -----------------
 	cv::namedWindow("keyboard input");
-	
+	std::cout << "Press [Space] to stop" << std::endl;
+
 	Chronometre chrono;		
 	while(cv::waitKey(1) != 32) {
 		cap >> frame;
@@ -45,7 +46,7 @@ int main() {
 		
 		Chronometre::wait(5); // Sleep a bit
 	}
-	
+
 	videoWriter.release();
 	return 0;	
 }

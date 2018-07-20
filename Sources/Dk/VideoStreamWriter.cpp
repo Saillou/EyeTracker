@@ -7,9 +7,10 @@ using namespace Protocole;
 VideoStreamWriter::VideoStreamWriter(ManagerConnection& managerConnection, const int port) :
 	_server(managerConnection.createServer(Socket::TCP, Socket::BLOCKING, port)),
 	_jpegCompressor(tjInitCompress()),
+	_buff(nullptr),				// Buffer sent
 	_buffTmp(tjAlloc(10000)), 	// Random init, tj will carry on the allocation
-	_bufSize(0), 						// Final size from tmp
-	_bufSizeTmp(0), 					// Real size of the buffer use by tj
+	_bufSize(0), 				// Final size from tmp
+	_bufSizeTmp(0), 			// Real size of the buffer use by tj
 	_valide(false),
 	_threadClients(nullptr),
 	_threadCompress(nullptr),
@@ -38,7 +39,6 @@ VideoStreamWriter::~VideoStreamWriter() {
 }
 
 // Methods
-
 void VideoStreamWriter::handleClients() {
 	std::cout << "Wait for clients";
 	
@@ -147,7 +147,7 @@ void VideoStreamWriter::_compressFrame(const cv::Mat& frame) {
 	_mutexBuffer.lock();
 	_bufSize = _bufSizeTmp;
 	_buff = (unsigned char*)realloc(_buff, _bufSize);
-	memcpy(_buff, _buffTmp, _bufSize);
+	memmove(_buff, _buffTmp, _bufSize);
 	_mutexBuffer.unlock();
 }
 
