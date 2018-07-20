@@ -148,7 +148,6 @@ void Server::closeAll() {
 
 // ------------------------ ThreadWrite --------------------- //
 Server::ThreadWrite::ThreadWrite(std::shared_ptr<Server> server, const Protocole::BinMessage& msg, const int idClient) :
-	_active(true),
 	_ptrThread(new std::thread(&ThreadWrite::write, this, server, msg, idClient))
 {
 }
@@ -163,20 +162,11 @@ Server::ThreadWrite::~ThreadWrite() {
 	
 void Server::ThreadWrite::write(std::shared_ptr<Server> server, const Protocole::BinMessage& msg, const int idClient) {
 	server->write(msg, idClient);
-	
-	_mutexActive.lock();
-	_active = false;
-	_mutexActive.unlock();
+	_atomActive = false;
 }
 	
 bool Server::ThreadWrite::isActive() {
-	bool res;
-	
-	_mutexActive.lock();
-	res =  _active;
-	_mutexActive.unlock();
-	
-	return res;
+	return _atomActive;
 }
 
 

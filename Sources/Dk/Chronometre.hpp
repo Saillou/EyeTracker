@@ -25,13 +25,13 @@ public:
 		_tEnd = _tRef;
 	}
 	
-	double clock_ms() const {
+	int64_t clock_ms() const {
 		return  _diffMs(_tRef, _now());
 	}
-	double ms() const {
+	int64_t ms() const {
 		return _diffMs(_tBeg, _tEnd);
 	}
-	double elapsed_ms() const {
+	int64_t elapsed_ms() const {
 		return _diffMs(_tBeg, _now());
 	}
 	
@@ -48,8 +48,8 @@ private:
 	static _timePoint _now() {
 		return std::chrono::high_resolution_clock::now();
 	}
-	static double _diffMs(const _timePoint& tA, const _timePoint& tB) {
-		return 1000*std::chrono::duration_cast<std::chrono::duration<double>>(tB - tA).count();
+	static int64_t _diffMs(const _timePoint& tA, const _timePoint& tB) {
+		return std::chrono::duration_cast<std::chrono::duration<int64_t, std::milli>>(tB - tA).count();
 	}
 	
 	// Members

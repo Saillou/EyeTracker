@@ -4,6 +4,7 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 #include <turbojpeg.h>
 
@@ -29,7 +30,9 @@ namespace Dk {
 		void update(const cv::Mat& newFrame);
 		void release();
 		
+		// Thread launch methods
 		void handleClients();
+		void handleCompress();
 		
 		// Getters
 		bool isValide() const;
@@ -37,21 +40,29 @@ namespace Dk {
 	private:
 		// Methods
 		void _handleClient(int idClient);
+		bool _treatClient(int idClient, const size_t action);
+		void _compressFrame(const cv::Mat& frame);
 		
 		// Members
 		std::shared_ptr<Server> _server;
 		tjhandle _jpegCompressor;
 		unsigned char* _buff;
+		unsigned char* _buffTmp;
 		unsigned long _bufSize;
+		unsigned long _bufSizeTmp;
 		bool _valide;
 		
-		std::mutex _mutexRun;
-		volatile bool _running;
+		std::atomic<bool> _atomRunning{false};
+		std::atomic<bool> _atomImageUpdated{false};
 		
-		std::mutex _mutexFrame;
-		cv::Mat _frameToPublish;
-		
+		std::mutex _mutexBuffer;
 		std::thread* _threadClients;
+		std::thread* _threadCompress;
+		
+		int _widthFrame;
+		int _heightFrame;
+		int _channelFrame;
+		cv::Mat _frameToCompress;
 	};
 }
 

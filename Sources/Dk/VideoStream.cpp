@@ -10,9 +10,6 @@ VideoStream::VideoStream(ManagerConnection& managerConnection, const ManagerConn
 	_jpegDecompressor(tjInitDecompress()),
 	_frame(cv::Mat()),
 	_valide(false),
-	_state(RunningState::NOT_DEFINED),
-	_fps(0.0),
-	_lag(0.0),
 	_threadRun(nullptr)
 {
 	// Check intialization
@@ -25,11 +22,7 @@ VideoStream::VideoStream(ManagerConnection& managerConnection, const ManagerConn
 	_valide = _sock != nullptr && _jpegDecompressor != NULL;
 }
 VideoStream::~VideoStream() {
-	_mutexState.lock();
-	auto retState = _state;
-	_mutexState.unlock();
-	
-	if(retState != STOPPED)
+	if(_atomState != STOPPED)
 		release();
 	
 	if(_jpegDecompressor != NULL)
@@ -41,54 +34,37 @@ VideoStream::~VideoStream() {
 
 // Methods
 void VideoStream::run() {
-	_mutexState.lock();
-	auto retState = _state;
-	_mutexState.unlock();
-	
-	Chronometre chrono;
-	clock_t c0Info = clock();
+	Chronometre chronoLag;
+	Chronometre chronoUpdate;
+
 	int nbFrame = 0;
 	double totalLag = 0;
 	
-	while(retState != STOPPED) {
-		// Get state update
-		_mutexState.lock();
-		retState = _state;
-		_mutexState.unlock();
-		
-		chrono.beg();
-		
-		if(retState == PLAYING) {
+	while(_atomState != STOPPED) {		
+		chronoLag.beg();
+		if(_atomState == PLAYING) {
 			if(!_askFrame())
 				break;
 			else 
 				nbFrame++;
 		}
+		chronoLag.end();
+		totalLag += chronoLag.ms();
 		
-		chrono.end();
-		totalLag += chrono.ms();
-		
-		clock_t nowC = clock();
-		
-		if(nowC - c0Info >= 1000) { // Update info
-			double fps = 1000.0*nbFrame / (nowC - c0Info);
+		if(chronoUpdate.elapsed_ms() > 1000) { // Update info
+			double fps = 1000.0 * nbFrame / chronoUpdate.elapsed_ms();
 			double lag = nbFrame > 0 ? totalLag / nbFrame : 0.0;
 			
-			_mutexFps.lock();
-			_fps = fps;
-			_mutexFps.unlock();			
+			_atomFps = fps;			
+			_atomLag = lag;
 			
-			_mutexLag.lock();
-			_lag = lag;
-			_mutexLag.unlock();
-			
-			c0Info 		= nowC;
+			chronoUpdate.beg();
 			nbFrame 	= 0;
 			totalLag 	= 0;
 		}
 		
-		// Wait 10ms
-		cv::waitKey(10);
+		// Wait 1ms
+		cv::waitKey(1);
 	}
 }
 
@@ -96,13 +72,11 @@ bool VideoStream::initFormat() {
 	if(!_valide)
 		return false;
 	
-	// Ask frame info		
+	// Ask frame info	 and read answer
 	BinMessage msg;
 	msg.set(BIN_INFO, "");
-	_sock->write(msg);
-	
-	// Answer	
-	if(_sock->read(msg)) {
+
+	if(_sock->write(msg) && _sock->read(msg)) {
 		CmdMessage cmd(Message::To_string(msg.getData()));
 		const int WIDTH 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second);
 		const int HEIGHT 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second);
@@ -121,16 +95,12 @@ bool VideoStream::play() {
 	if(_threadRun == nullptr)
 		_threadRun = new std::thread(&VideoStream::run, this);
 	
-	_mutexState.lock();
-	_state = PLAYING;
-	_mutexState.unlock();
+	_atomState = PLAYING;
 	
 	return _valide;
 }
 bool VideoStream::pause() {
-	_mutexState.lock();
-	_state = PAUSED;
-	_mutexState.unlock();
+	_atomState = PAUSED;
 
 	return _valide;
 }
@@ -166,10 +136,7 @@ bool VideoStream::_askFrame() {
 
 bool VideoStream::release() {	
 	// Quit
-	_mutexState.lock();
-	_state = STOPPED;
-	_mutexState.unlock();
-
+	_atomState = STOPPED;
 	_valide = false;
 	
 	if(_threadRun != nullptr)
@@ -185,26 +152,14 @@ bool VideoStream::release() {
 }
 
 // Getters
-RunningState VideoStream::getState() {
-	_mutexState.lock();
-	auto res = _state;
-	_mutexState.unlock();
-	
-	return res;
+RunningState VideoStream::getState() const {
+	return _atomState;
 }
-double VideoStream::getFpsRate() {
-	_mutexFps.lock();
-	auto res = _fps;
-	_mutexFps.unlock();
-	
-	return res;	
+double VideoStream::getFpsRate() const {
+	return _atomFps;	
 }
-double VideoStream::getLag() {
-	_mutexLag.lock();
-	auto res = _lag;
-	_mutexLag.unlock();
-	
-	return _lag;	
+double VideoStream::getLag() const {
+	return _atomLag;	
 }
 bool VideoStream::isValide() const {
 	return _valide;

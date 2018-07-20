@@ -5,7 +5,7 @@
 
 #include <memory>
 #include <thread>
-#include <mutex>
+#include <atomic>
 
 class Server : public Socket {
 public:
@@ -40,9 +40,8 @@ public:
 
 	private: 
 		// Members
-		volatile bool _active; // should be better to be an atomic, but good luck with that.. (No copy, no move .. how to use with vector ?) So, we use with a mutex.
+		std::atomic<bool> _atomActive{true};
 		std::thread* _ptrThread;
-		std::mutex _mutexActive;
 	};
 };
 

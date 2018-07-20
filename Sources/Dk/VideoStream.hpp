@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <thread>
-#include <mutex>
+#include <atomic>
 
 #include <turbojpeg.h>
 
@@ -40,9 +40,9 @@ namespace Dk {
 		void run();
 		
 		// Getter
-		RunningState getState();
-		double getFpsRate();
-		double getLag();
+		RunningState getState() const;
+		double getFpsRate() const;
+		double getLag() const;
 		bool isValide() const;
 		
 	private:
@@ -59,14 +59,9 @@ namespace Dk {
 		bool 	_valide;
 		
 		// Thread use
-		volatile RunningState _state;
-		std::mutex 	_mutexState;
-		
-		double _fps;
-		std::mutex _mutexFps;
-		
-		double _lag;
-		std::mutex _mutexLag;
+		std::atomic<RunningState> _atomState{NOT_DEFINED};
+		std::atomic<double> _atomFps{0.0};
+		std::atomic<double> _atomLag{0.0};
 		
 		std::thread* _threadRun;
 	};
