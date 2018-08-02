@@ -42,14 +42,18 @@ private:
 	void _onShow() override {
 		if(!_mouseCbkInitialized) {
 			this->repaint();
-			cv::setMouseCallback(this->_pName, [=](int event, int x, int y, int /*flags*/, void* userdata){
-				Gui* _thisGui = static_cast<Gui*>(userdata);
-				if(_thisGui)
-					_thisGui->_dispatchMouseEvent(event, x, y);
-			}, this);
+			cv::setMouseCallback(
+				this->_pName, 
+				[](int event, int x, int y, int /*flags*/, void* data){
+					Gui* _thisGui = static_cast<Gui*>(data);
+					if(_thisGui)
+						_thisGui->_dispatchMouseEvent(event, x, y);
+				}, 
+				this);
 			this->_mouseCbkInitialized = true;
 		}
 	}
+	
 	void _onHide() override {
 		cv::setMouseCallback(this->_pName, NULL, NULL);
 		this->_mouseCbkInitialized = false;
