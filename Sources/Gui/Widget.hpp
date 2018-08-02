@@ -27,29 +27,6 @@ public:
 		onValueChanged	= 16
 	};
 	
-	struct Point {
-		Point(int x_, int y_) : x(x_), y(y_) {
-		}
-		
-		int x;
-		int y;
-	};
-	struct Size {
-		Size(unsigned int w_, unsigned int h_) : w(w_), h(h_) {
-		}
-		
-		unsigned int w;
-		unsigned int h;
-	};
-	struct Color {
-		Color(unsigned char r_, unsigned char g_, unsigned char b_) : r(r_), g(g_), b(b_) {
-		}
-		
-		unsigned char r;
-		unsigned char g;
-		unsigned char b;
-	};
-	
 public:
 	// Constructors
 	explicit Widget(const std::string& name = "Widget") : 

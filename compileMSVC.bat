@@ -47,9 +47,9 @@ if exist %object%\*.obj (
 
 ::Compile sources 
 cl	/c /EHa /W3 ^
-	%source%\Dk\VideoStreamWriter.cpp ^
-	%source%\main_msvc_server.cpp ^
 	%source%\main_msvc.cpp ^
+	%source%\main_msvc_server.cpp ^
+	%source%\Dk\VideoStreamWriter.cpp ^
 	%source%\Dk\Socket.cpp ^
 	%source%\Dk\Server.cpp ^
 	%source%\Dk\Protocole.cpp ^
@@ -76,7 +76,6 @@ if exist %object%\*.obj (
 		opencv_core320.lib ^
 		turbojpeg.lib ^
 		ws2_32.lib ^
-		User32.lib ^
 		/LIBPATH:D:\Dev\Opencv3\opencv\build_vc12\lib\Release ^
 		/LIBPATH:D:\Dev\LibJpeg\build\Release ^
 		/MACHINE:X64 /INCREMENTAL:NO /NOLOGO /DYNAMICBASE /ERRORREPORT:PROMPT ^
@@ -97,7 +96,6 @@ if exist %object%\*.obj (
 		opencv_core320.lib ^
 		turbojpeg.lib ^
 		ws2_32.lib ^
-		User32.lib ^
 		/LIBPATH:D:\Dev\Opencv3\opencv\build_vc12\lib\Release ^
 		/LIBPATH:D:\Dev\LibJpeg\build\Release ^
 		/MACHINE:X64 /INCREMENTAL:NO /NOLOGO /DYNAMICBASE /ERRORREPORT:PROMPT ^

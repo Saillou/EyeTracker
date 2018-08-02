@@ -8,7 +8,7 @@ namespace CvGui {
 class Spacer : public Widget {
 public:	
 	// Constructors
-	explicit Spacer(const Size& s = Size(150, 150), const std::string& name = "Spacer") : 
+	explicit Spacer(const cv::Size& s = cv::Size(150, 150), const std::string& name = "Spacer") : 
 		Widget(name),
 		_size(s)
 	{
@@ -30,11 +30,11 @@ public:
 private:
 	// Methods
 	void _design() override {
-		_pFrame = cv::Mat(_size.h, _size.w, CV_8UC3, cv::Scalar::all(0));
+		_pFrame = cv::Mat(_size.height, _size.width, CV_8UC3, cv::Scalar::all(0));
 	}
 
 	// Member
-	Size _size;
+	cv::Size _size;
 };
 	
 }

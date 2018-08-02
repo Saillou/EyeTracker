@@ -35,7 +35,7 @@ int main() {
 
 	// ------ Loop it ------	
 	gui.show();
-	while(gui.wait(30) != gui.VK_ESCAPE) {
+	while(gui.wait(30) != gui.KEY_ESCAPE) {
 		// Do things
 	}
 	

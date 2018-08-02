@@ -11,7 +11,7 @@
 	
 	typedef unsigned int SOCKET_LENGTH;
 #elif _WIN32
-	#include <windows.h>
+	#include <winsock2.h>
 	
 	typedef int SOCKET_LENGTH;
 #endif

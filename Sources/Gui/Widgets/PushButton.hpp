@@ -8,7 +8,7 @@ namespace CvGui {
 class PushButton : public Widget {
 public:	
 	// Constructors
-	explicit PushButton(const std::string& text = "", const Size& s = Size(150, 150), const std::string& name = "PushButton") : 
+	explicit PushButton(const std::string& text = "", const cv::Size& s = cv::Size(150, 150), const std::string& name = "PushButton") : 
 		Widget(name),
 		_size(s),
 		_btnText(text),
@@ -87,8 +87,8 @@ private:
 		int baseLine(0);
 		cv::Size textSize 	= cv::getTextSize(_btnText, cv::FONT_HERSHEY_DUPLEX, 0.5, 1, &baseLine);
 		cv::Size frameSize	= cv::Size (
-			textSize.width > (int)_size.w-10 ? textSize.width + 10 : (int)_size.w,
-			textSize.height > (int)_size.h-10 ? textSize.height + 10 : (int)_size.h
+			textSize.width > _size.width-10 ? textSize.width + 10 : _size.width,
+			textSize.height > _size.height-10 ? textSize.height + 10 : _size.height
 		);
 		
 		cv::Scalar bkColor = _isDown ? cv::Scalar(42, 45, 45) : cv::Scalar(82 + 20*_mouseOver, 85 + 20*_mouseOver, 85 + 20*_mouseOver);
@@ -106,7 +106,7 @@ private:
 
 	// Member
 	std::string _btnText;
-	Size _size;
+	cv::Size _size;
 	bool _isDown;
 	bool _mouseOver;
 };

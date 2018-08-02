@@ -1,14 +1,12 @@
 #include <iostream>
 
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <turbojpeg.h>
-
 #include "Dk/ManagerConnection.hpp"
 #include "Dk/Chronometre.hpp"
 #include "Dk/VideoStreamWriter.hpp"
+
+#include "Gui/CvGui.hpp"
+
+using namespace CvGui;
 
 int main() {
 	// -------------------- Open the cam --------------------
@@ -26,12 +24,27 @@ int main() {
 	if(!videoWriter.startBroadcast(frame))
 		return 0;
 
-	// ----------------- Update continuously -----------------
-	cv::namedWindow("keyboard input");
-	std::cout << "Press [Space] to stop" << std::endl;
+	// ------ Create GUI ------
+	Gui<AddPolicy::Col> gui;
+	auto interface0 = gui.createInterface();
+	auto button 	= std::make_shared<PushButton>("Stop", cv::Size(150, 50));
 
+	interface0->add(button);
+	gui.add(interface0);
+	
+	// Attach events
+	bool stop = false;
+	button->listen(PushButton::onClick, [=](void* in, void*) {
+		bool* inStop = static_cast<bool*>(in);
+		if(inStop)
+			*inStop = true;
+		
+	}, (void*)(&stop));
+
+	// ----------------- Update continuously -----------------	
 	Chronometre chrono;		
-	while(cv::waitKey(1) != 32) {
+	gui.show();
+	while(!stop) {
 		cap >> frame;
 		videoWriter.update(frame);
 		
@@ -44,9 +57,9 @@ int main() {
 			std::cout << std::endl << (mn < 10 ? "0" : "") << mn << "'" << (sec < 10 ? "0" : "") << sec << std::endl;
 		}
 		
-		Chronometre::wait(5); // Sleep a bit
+		gui.wait(5);
 	}
-
+	
 	videoWriter.release();
 	return 0;	
 }

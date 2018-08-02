@@ -20,9 +20,7 @@ public:
 	
 	// Methods
 	std::shared_ptr<Interface<AddPolicy>> createInterface(const std::string& interfaceName = "Interface") {
-		std::shared_ptr<Interface<AddPolicy>> interface = std::make_shared<Interface<AddPolicy>>(interfaceName);
-		
-		return interface;
+		return std::make_shared<Interface<AddPolicy>>(interfaceName);
 	}
 	
 	const int wait(unsigned int ms = 0) {
@@ -32,8 +30,8 @@ public:
 	}
 	
 	// Constantes public members
-	const int VK_ESCAPE = 0x1B;
-	
+	const int KEY_ESCAPE = 0x1B;
+	const int KEY_SPACE = 0x20;
 	
 private:
 	// Copy disabled
