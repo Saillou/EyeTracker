@@ -39,16 +39,14 @@ private:
 	Gui(const Gui&) = delete;
 	
 	// Methods
-	friend void _onMouseEvent(int event, int x, int y, int /*flags*/, void* userdata) {
-		Gui* _thisGui = static_cast<Gui*>(userdata);
-		if(_thisGui)
-			_thisGui->_dispatchMouseEvent(event, x, y);
-	}
-	
 	void _onShow() override {
 		if(!_mouseCbkInitialized) {
 			this->repaint();
-			cv::setMouseCallback(this->_pName, _onMouseEvent, this);
+			cv::setMouseCallback(this->_pName, [=](int event, int x, int y, int /*flags*/, void* userdata){
+				Gui* _thisGui = static_cast<Gui*>(userdata);
+				if(_thisGui)
+					_thisGui->_dispatchMouseEvent(event, x, y);
+			}, this);
 			this->_mouseCbkInitialized = true;
 		}
 	}
