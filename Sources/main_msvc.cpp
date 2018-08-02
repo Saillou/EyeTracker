@@ -12,7 +12,7 @@ int main() {
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	
-	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.20", 3000), ManagerConnection::IpAdress("192.168.128.50", 3000), 1);	
+	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.200", 3000), ManagerConnection::IpAdress("192.168.128.210", 3000), 1);	
 	if(ipOpened.size() == 0)
 		return 0;
 	// -------------------------------------------------------------- //
