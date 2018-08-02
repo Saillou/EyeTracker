@@ -10,8 +10,8 @@ public:
 	// Constructors
 	explicit PushButton(const std::string& text = "", const cv::Size& s = cv::Size(150, 150), const std::string& name = "PushButton") : 
 		Widget(name),
-		_size(s),
 		_btnText(text),
+		_size(s),
 		_isDown(false),
 		_mouseOver(false)
 	{
