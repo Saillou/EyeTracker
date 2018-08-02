@@ -12,9 +12,9 @@ int main() {
 	
 	auto label 		= std::make_shared<Label>("List of Widgets: ");
 	auto trackbar 	= std::make_shared<TrackBar>("Move Me: ");
-	auto button 	= std::make_shared<PushButton>("Click Me !", Widget::Size(150, 50));
+	auto button 	= std::make_shared<PushButton>("Click Me !", cv::Size(150, 50));
 	auto checkBox 	= std::make_shared<CheckBox>("Check Me: ");
-	auto spacer 	= std::make_shared<Spacer>(Widget::Size(50, 250));
+	auto spacer 	= std::make_shared<Spacer>(cv::Size(50, 250));
 	
 	interface->add(spacer);
 	interface->add(label, trackbar, button, checkBox);
