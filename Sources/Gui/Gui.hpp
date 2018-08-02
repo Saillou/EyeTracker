@@ -24,8 +24,8 @@ public:
 	}
 	
 	const int wait(unsigned int ms = 0) {
-		_update();
-		show();
+		this->_update();
+		this->show();
 		return cv::waitKey(ms);
 	}
 	
@@ -39,22 +39,22 @@ private:
 	Gui(const Gui&) = delete;
 	
 	// Methods
-	void _onShow() override {
-		if(!_mouseCbkInitialized) {
-			repaint();
-			cv::setMouseCallback(_pName, _onMouseEvent, this);
-			_mouseCbkInitialized = true;
-		}
-	}
-	void _onHide() override {
-		cv::setMouseCallback(_pName, NULL, NULL);
-		_mouseCbkInitialized = false;
-	}
-	
 	friend void _onMouseEvent(int event, int x, int y, int /*flags*/, void* userdata) {
 		Gui* _thisGui = static_cast<Gui*>(userdata);
 		if(_thisGui)
 			_thisGui->_dispatchMouseEvent(event, x, y);
+	}
+	
+	void _onShow() override {
+		if(!_mouseCbkInitialized) {
+			this->repaint();
+			cv::setMouseCallback(this->_pName, _onMouseEvent, this);
+			this->_mouseCbkInitialized = true;
+		}
+	}
+	void _onHide() override {
+		cv::setMouseCallback(this->_pName, NULL, NULL);
+		this->_mouseCbkInitialized = false;
 	}
 	
 	// Members

@@ -78,7 +78,7 @@ public:
 		if(input != nullptr) {
 			_IntefacedObject iobj(input);
 			std::pair<int,int> moveTmp, moveInput;
-			_push(*_tmpRes, *input, *_tmpRes, &moveTmp, &moveInput);
+			this->_push(*_tmpRes, *input, *_tmpRes, &moveTmp, &moveInput);
 			
 			// Update pos in tmp and set the new one
 			iobj.setPos(moveInput);
@@ -96,7 +96,7 @@ public:
 		else {
 			// Commit result
 			std::pair<int,int> moveTmp, moveThis;
-			_commit(*this, *_tmpRes, *this, &moveThis, &moveTmp);
+			this->_commit(*this, *_tmpRes, *this, &moveThis, &moveTmp);
 			
 			// Update all prev pos and tmp
 			for(auto& io : _tmpChildren)
@@ -115,7 +115,7 @@ public:
 	}
 	
 	void repaint() {
-		_update(true);
+		this->_update(true);
 	}
 	
 	// Getters
@@ -152,7 +152,7 @@ protected:
 	virtual void _eventOut() {
 		// .. cancel events in memory
 		if(_memoWidgetEvent.first != nullptr && _memoWidgetEvent.second != Widget::onMouseOut)
-			_applyEvent(_memoWidgetEvent.first, Widget::onMouseOut);
+			this->_applyEvent(_memoWidgetEvent.first, Widget::onMouseOut);
 		_memoWidgetEvent = {nullptr, Widget::noEvent};
 	}
 	
@@ -188,27 +188,27 @@ protected:
 					if(_memoWidgetEvent.second != Widget::onMouseOut) {
 						auto prevChild = _findObjFromWidget(_memoWidgetEvent.first);
 						if(prevChild)
-							_applyEvent(_memoWidgetEvent.first, Widget::onMouseOut, x - prevChild->x, y - prevChild->y, prevChild);
-						_applyEvent(childWidget, Widget::onMouseIn, nx, ny, &child);
+							this->_applyEvent(_memoWidgetEvent.first, Widget::onMouseOut, x - prevChild->x, y - prevChild->y, prevChild);
+						this->_applyEvent(childWidget, Widget::onMouseIn, nx, ny, &child);
 					}
 				}
 				else {
 					// Click
 					if(_memoWidgetEvent.second == Widget::onButtonDown && event == Widget::onButtonUp)
-						_applyEvent(childWidget, Widget::onClick, nx, ny, &child);
+						this->_applyEvent(childWidget, Widget::onClick, nx, ny, &child);
 					
 					if(_memoWidgetEvent.second == Widget::onRButtonDown && event == Widget::onRButtonUp)
-						_applyEvent(childWidget, Widget::onRClick, nx, ny, &child);
+						this->_applyEvent(childWidget, Widget::onRClick, nx, ny, &child);
 				}
 				
 				// Other event
-				_applyEvent(childWidget, event, nx, ny, &child);
+				this->_applyEvent(childWidget, event, nx, ny, &child);
 				continue;
 			}
 		}
 		
 		if(!targetFound)
-			_eventOut();
+			this->_eventOut();
 	}
 	
 	
@@ -224,7 +224,7 @@ private:
 	void _applyEvent(Widget* widget, int event, int x = -1, int y = -1, _IntefacedObject* objInterfaced = nullptr) {
 		// If not defined, search object
 		if(objInterfaced == nullptr)
-			objInterfaced = _findObjFromWidget(widget);
+			objInterfaced = this->_findObjFromWidget(widget);
 		
 		// If still not found, quit
 		if(objInterfaced == nullptr)
