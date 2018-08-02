@@ -157,12 +157,12 @@ private:
 		// Draw Label
 		cv::putText(_pFrame, _lblText,
 			cv::Point(0, (_pFrame.rows - txtLabelSize.height) / 2 + (int)1.5*baseLineL + 3),
-			cv::FONT_HERSHEY_DUPLEX, 0.5, cv::Scalar(255, 255, 255), 1, CV_AA);
+			cv::FONT_HERSHEY_DUPLEX, 0.5, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
 			
 		// Draw Value
 		cv::putText(_pFrame, valueTxt,
 			cv::Point(5 + txtLabelSize.width + 5 + widthBar + buttonCote, (_pFrame.rows - txtValueSize.height) / 2 + (int)1.5*baseLineV + 3), 	// Top-left position
-			cv::FONT_HERSHEY_DUPLEX, 0.5, cv::Scalar(255, 255, 255), 1, CV_AA);
+			cv::FONT_HERSHEY_DUPLEX, 0.5, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
 			
 		// Draw Bar
 		cv::Scalar barColor = _isDown ? cv::Scalar(42, 45, 45) : cv::Scalar(82 + 20*_mouseOver, 85 + 20*_mouseOver, 85 + 20*_mouseOver);

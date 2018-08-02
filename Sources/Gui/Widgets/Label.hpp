@@ -36,7 +36,7 @@ private:
 		cv::putText(_pFrame, _text,
 			cv::Point(5, textSize.height + baseLine), 	// Top-left position
 			cv::FONT_HERSHEY_DUPLEX, 0.5,				// Font
-			cv::Scalar(255, 255, 255), 1, CV_AA);
+			cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
 	}
 
 	// Member

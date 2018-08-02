@@ -101,7 +101,7 @@ private:
 		cv::putText(_pFrame, _btnText,
 			cv::Point((frameSize.width - textSize.width)/2, (_pFrame.rows - textSize.height) / 2 + (int)1.5*baseLine + 3), 	// Top-left position
 			cv::FONT_HERSHEY_DUPLEX, 0.5,				// Font
-			ftColor, 1, CV_AA);
+			ftColor, 1, cv::LINE_AA);
 	}
 
 	// Member

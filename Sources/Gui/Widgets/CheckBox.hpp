@@ -103,7 +103,7 @@ private:
 		
 		cv::putText(_pFrame, _btnText,
 			cv::Point(5, textSize.height + baseLine), 	// Top-left position
-			cv::FONT_HERSHEY_DUPLEX, 0.5, cv::Scalar(255, 255, 255), 1, CV_AA);
+			cv::FONT_HERSHEY_DUPLEX, 0.5, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
 			
 		// Button
 		cv::Scalar bkColor = _isDown ? cv::Scalar(42, 45, 45) : cv::Scalar(82 + 20*_mouseOver, 85 + 20*_mouseOver, 85 + 20*_mouseOver);
