@@ -36,7 +36,7 @@ int main() {
 	auto button 	= std::make_shared<PushButton>("Stop", cv::Size(150, 50));
 
 	interface0->add(button);
-	gui.add(interface0);
+	gui.add(std::make_shared<Spacer>(cv::Size(25,25)), interface0, std::make_shared<Spacer>(cv::Size(25,25)));
 	
 	// Attach events
 	bool stop = false;

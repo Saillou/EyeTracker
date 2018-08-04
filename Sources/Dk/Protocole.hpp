@@ -17,8 +17,14 @@ namespace Protocole {
 		FormatStream(int h = 0, int w = 0, int c = 0) : 
 			height(h),
 			width(w),
-			channels(c)
-		{	/* Nothing to do. */	}
+			channels(c),
+			fps(0),
+			hue(-1),
+			saturation(-1),
+			brightness(-1),
+			contrast(-1),
+			exposure(-1)
+		{	/* Nothing else to do. */	}
 		
 		// Methods
 		bool isEmpty() const {
@@ -32,7 +38,12 @@ namespace Protocole {
 		int height;
 		int width;
 		int channels;
-		
+		int fps;
+		double hue;
+		double saturation;
+		double brightness;
+		double contrast;
+		double exposure;
 	};
 	
 	// Base messages
@@ -55,6 +66,7 @@ namespace Protocole {
 		
 		// Statics
 		static size_t To_unsignedInt(const std::string& digits, const int base = 10);
+		static double To_double(const std::string& digits, const int base = 10);
 		static std::string To_string(const std::vector<char>& vchar);
 		static std::vector<char> To_vector(const std::string& vchar);
 
@@ -132,9 +144,9 @@ namespace Protocole {
 		virtual ~CmdMessage();
 		
 		// Methods
-		void unserialize(const char *data, const size_t nb) 	override;
-		std::vector<char> serialize() const 						override;
-		void clear() 														override;
+		void unserialize(const char *data, const size_t nb) override;
+		std::vector<char> serialize() const 				override;
+		void clear() 										override;
 		
 		void addCommand(const std::string& action, const std::string& data);
 		void addCommand(const Command& cmd);

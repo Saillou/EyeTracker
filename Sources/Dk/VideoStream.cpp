@@ -80,10 +80,16 @@ const FormatStream VideoStream::initFormat() {
 
 	if(_sock->write(msg) && _sock->read(msg)) {
 		CmdMessage cmd(Message::To_string(msg.getData()));
-		_format.width 	 = static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second));
-		_format.height 	 = static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second));
-		_format.channels = static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second));
-		
+		_format.width 	 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second));
+		_format.height 	 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second));
+		_format.channels 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second));
+		_format.fps 		= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_FPS).second));
+		_format.hue 		= Message::To_double(cmd.getCommand(CMD_HUE).second);
+		_format.saturation 	= Message::To_double(cmd.getCommand(CMD_SATURATION).second);
+		_format.brightness 	= Message::To_double(cmd.getCommand(CMD_BRIGHTNESS).second);
+		_format.contrast 	= Message::To_double(cmd.getCommand(CMD_CONTRAST).second);
+		_format.exposure 	= Message::To_double(cmd.getCommand(CMD_EXPOSURE).second);
+	
 		if(!_format.isEmpty()) {
 			_frame 		= cv::Mat::zeros(_format.height, _format.width, _format.channels == 1 ? CV_8UC1 : CV_8UC3);
 			_frameCpy 	= _frame.clone();

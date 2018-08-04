@@ -55,13 +55,26 @@ int main() {
 	auto interface0 = gui.createInterface();
 	auto btn 	= std::make_shared<PushButton>("Play/Pause", cv::Size(150, 50));
 	auto btnQ	= std::make_shared<PushButton>("Quit", cv::Size(150, 50));
-	auto screen	= std::make_shared<Displayable>("Frame", frame);
-	
 	interface0->add(btn);
 	interface0->add(btnQ);
-	gui.add(interface0, screen);
 	
-	// Listen event
+	auto interface1 = gui.createInterface();
+	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ");
+	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ");
+	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ");
+	auto tbHue			= std::make_shared<TrackBar>("Hue: ");
+	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ");
+	interface1->add(tbExposure, tbBrightness, tbContrast, tbHue, tbSaturation);
+	
+	auto interface2 = gui.createInterface();
+	auto screen	= std::make_shared<Displayable>("Frame", frame);
+	interface2->add(std::make_shared<Spacer>(cv::Size(25,25)));
+	interface2->add(interface1);
+	interface2->add(screen);
+	interface2->add(std::make_shared<Spacer>(cv::Size(25,25)));
+	gui.add(std::make_shared<Spacer>(cv::Size(25,25)), interface0, std::make_shared<Spacer>(cv::Size(25,25)), interface2, std::make_shared<Spacer>(cv::Size(25,25)));
+	
+	// Listen events
 	bool stop = false;
 	
 	btn->listen(PushButton::onClick, manageStream, (void*)(&video));	// Play/Pause video

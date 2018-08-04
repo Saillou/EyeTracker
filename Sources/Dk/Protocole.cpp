@@ -9,7 +9,6 @@ Message::Message() {
 Message::~Message() {
 	// Is there something to do?
 }
-
 		
 // Statics
 size_t Message::To_unsignedInt(const std::string& digits, const int base) {
@@ -19,6 +18,29 @@ size_t Message::To_unsignedInt(const std::string& digits, const int base) {
 	}
 	
 	return res;
+}
+double Message::To_double(const std::string& digits, const int base) {
+	int res 		= 0;
+	int scale 		= 1;
+	bool decimal 	= false;
+	double signe 	= 1.0;
+	
+	auto it = digits.begin();
+	if(*it == '-') {
+		signe = -1.0;
+		++it;
+	}
+		
+	for(; it != digits.end(); ++it) {
+		char c = *it;
+		if(c != '.') {
+			res = (int)(c - '0') + res * base;
+			if(decimal) scale *= base;
+		}
+		else decimal = true;
+	}
+	
+	return signe*res/scale;
 }
 std::string Message::To_string(const std::vector<char>& vchar) {
 	return std::string(vchar.data(), vchar.size());

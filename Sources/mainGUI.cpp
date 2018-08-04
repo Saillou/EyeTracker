@@ -39,8 +39,50 @@ void drawRandom(cv::Mat& output) {
 	cv::line(output, center, center + direction,SPEED_COLOR, 2, cv::LINE_AA);
 }
 
+double To_double(const std::string& digits, const int base = 10) {
+	int res 		= 0;
+	int scale 		= 1;
+	bool decimal 	= false;
+	double signe 	= 1.0;
+	
+	auto it = digits.begin();
+	if(*it == '-') {
+		signe = -1.0;
+		++it;
+	}
+		
+	for(; it != digits.end(); ++it) {
+		char c = *it;
+		if(c != '.') {
+			res = (int)(c - '0') + res * base;
+			if(decimal) scale *= base;
+		}
+		else decimal = true;
+	}
+	
+	return signe*res/scale;
+}
+
 // ------------------  M a i n ---------------------
 int main() {
+	// Inputs 
+	std::vector<std::string> inputs {
+		std::to_string(1505),
+		std::to_string(1.505),
+		std::to_string(-1505),
+		std::to_string(-1.505),
+		std::to_string(0),
+		std::to_string(0.0),
+		std::to_string(-0.0)
+	};
+	
+	for(std::string input : inputs) {
+		std::cout << input << " => " << To_double(input) << std::endl;
+	}
+	std::cout << "" << " => " << To_double("") << std::endl;
+	
+	return 0;
+	/*
 	// ----- Simulacre datas -----
 	cv::Mat frame = cv::Mat::zeros(240, 320, CV_8UC3);
 	
@@ -86,4 +128,5 @@ int main() {
 	}
 	
 	return 0;
+	*/
 }

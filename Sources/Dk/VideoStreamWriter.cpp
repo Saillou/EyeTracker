@@ -91,9 +91,15 @@ bool VideoStreamWriter::_treatClient(const int idClient, const size_t action) {
 		case BIN_INFO:
 		{ 
 			CmdMessage cmd;
-			cmd.addCommand(CMD_HEIGHT, 	std::to_string(_format.height));
-			cmd.addCommand(CMD_WIDTH, 	std::to_string(_format.width));
-			cmd.addCommand(CMD_CHANNEL,	std::to_string(_format.channels));
+			cmd.addCommand(CMD_HEIGHT, 		std::to_string(_format.height));
+			cmd.addCommand(CMD_WIDTH, 		std::to_string(_format.width));
+			cmd.addCommand(CMD_CHANNEL,		std::to_string(_format.channels));
+			cmd.addCommand(CMD_FPS,			std::to_string(_format.fps));
+			cmd.addCommand(CMD_HUE,			std::to_string(_format.hue));
+			cmd.addCommand(CMD_SATURATION,	std::to_string(_format.saturation));
+			cmd.addCommand(CMD_BRIGHTNESS,	std::to_string(_format.brightness));
+			cmd.addCommand(CMD_CONTRAST,	std::to_string(_format.contrast));
+			cmd.addCommand(CMD_EXPOSURE,	std::to_string(_format.exposure));
 			
 			msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
 			_server->write(msg, idClient);
@@ -134,12 +140,12 @@ void VideoStreamWriter::_compressFrame(const cv::Mat& frame) {
 		frame.cols, 	// width
 		TJPAD(frame.cols * tjPixelSize[TJPF_BGR]), // bytes per line
 		frame.rows,	// height
-		TJPF_BGR, 		// pixel format
+		TJPF_BGR, 	// pixel format
 		&_buffTmp, 	// ptr to buffer, unsigned char **
 		&_bufSizeTmp, 
 		TJSAMP_420,	// chrominace sub sampling
-		80, 				// quality, int
-		0 					// flags
+		80, 		// quality: 0-100
+		0 			// flags: osef
 	);	
 	
 	// Copy to displayed buffer
@@ -160,9 +166,15 @@ const Protocole::FormatStream& VideoStreamWriter::startBroadcast(std::shared_ptr
 	// Read camera format
 	CvProperties::CaptureProperties camProp(_pCam, Dk::CvProperties::Camera);
 	
-	_format.width 	 = static_cast<int>(camProp.get(cv::CAP_PROP_FRAME_WIDTH).value.manual);
-	_format.height 	 = static_cast<int>(camProp.get(cv::CAP_PROP_FRAME_HEIGHT).value.manual);
-	_format.channels = 3;
+	_format.width 	 	= static_cast<int>(camProp.get(cv::CAP_PROP_FRAME_WIDTH).value.manual);
+	_format.height 	 	= static_cast<int>(camProp.get(cv::CAP_PROP_FRAME_HEIGHT).value.manual);
+	_format.channels 	= 3;
+	_format.fps 		= static_cast<int>(camProp.get(cv::CAP_PROP_FPS).value.manual);
+	_format.hue 		= camProp.get(cv::CAP_PROP_HUE).value.manual;
+	_format.saturation 	= camProp.get(cv::CAP_PROP_SATURATION).value.manual;
+	_format.brightness 	= camProp.get(cv::CAP_PROP_BRIGHTNESS).value.manual;
+	_format.contrast 	= camProp.get(cv::CAP_PROP_CONTRAST).value.manual;
+	_format.exposure 	= camProp.get(cv::CAP_PROP_EXPOSURE).value.manual;
 	
 	// Init buffer - create a first (black) frame
 	cv::Mat frameInit = cv::Mat::zeros(_format.height, _format.width, _format.channels == 1 ? CV_8UC1 : CV_8UC3);

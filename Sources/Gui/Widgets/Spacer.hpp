@@ -1,27 +1,22 @@
 #ifndef CVGUI_SPACER_HPP
 #define CVGUI_SPACER_HPP
 
-#include "../Widget.hpp"
+#include "../Displayable.hpp"
 
 namespace CvGui {
 
-class Spacer : public Widget {
+class Spacer : public Displayable {
 public:	
 	// Constructors
 	explicit Spacer(const cv::Size& s = cv::Size(150, 150), const std::string& name = "Spacer") : 
-		Widget(name),
-		_size(s)
+		Displayable(name, cv::Mat::zeros(s.height, s.width, CV_8UC3))
 	{
-		_design();
 	}
 	
 	~Spacer() {
 	}
 	
 	// Methods
-	bool onEvent(int /*event*/, int /*x*/= -1, int /*y*/= -1) {
-		return false;
-	}
 	
 	// Getters
 
@@ -29,12 +24,8 @@ public:
 	
 private:
 	// Methods
-	void _design() override {
-		_pFrame = cv::Mat(_size.height, _size.width, CV_8UC3, cv::Scalar::all(0));
-	}
 
 	// Member
-	cv::Size _size;
 };
 	
 }

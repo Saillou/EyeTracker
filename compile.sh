@@ -83,7 +83,7 @@ create "Release"
 
 OutputName="EyeTracker"
 declare -a Sources=(
-	"main_ubuntu" 
+	"main_server" 
 )
 declare -a Dk=(
 	"ManagerConnection" 
