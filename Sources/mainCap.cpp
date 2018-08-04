@@ -14,7 +14,7 @@ int main() {
 	// Properties
 	Dk::CvProperties::CaptureProperties capProperties(pCap, Dk::CvProperties::Camera);
 	
-	for(auto p: capProperties.GetAll()) {
+	for(auto p: capProperties.getAll()) {
 		auto prop = p.second;
 		if(prop.availability.manual) {
 			std::cout << Dk::CvProperties::GetPropertyName(prop.id) << " = ";

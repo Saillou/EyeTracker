@@ -26,8 +26,8 @@ namespace Dk {
 		~VideoStreamWriter();
 		
 		// Methods
-		bool startBroadcast(const cv::Mat& frameInit);
-		void update(const cv::Mat& newFrame);
+		const Protocole::FormatStream& startBroadcast(std::shared_ptr<cv::VideoCapture> pCam);
+		const cv::Mat update();
 		void release();
 		
 		// Thread launch methods
@@ -61,6 +61,7 @@ namespace Dk {
 		
 		Protocole::FormatStream _format;
 		cv::Mat _frameToCompress;
+		std::shared_ptr<cv::VideoCapture> _pCam;
 	};
 }
 

@@ -18,7 +18,7 @@ namespace Protocole {
 			height(h),
 			width(w),
 			channels(c)
-		{	}
+		{	/* Nothing to do. */	}
 		
 		// Methods
 		bool isEmpty() const {
@@ -33,7 +33,6 @@ namespace Protocole {
 		int width;
 		int channels;
 		
-		// .. to be continued
 	};
 	
 	// Base messages

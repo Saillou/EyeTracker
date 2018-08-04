@@ -119,13 +119,13 @@ namespace CvProperties {
 		}
 		
 		// Methods
-		const Property& Get(int cvPropertyId, bool update = false) {
+		const Property& get(int cvPropertyId, bool update = false) {
 			if(update)
 				_pProperties[cvPropertyId] = Helper::Get(*_pCam, cvPropertyId);
 			
 			return _pProperties[cvPropertyId];
 		}
-		bool Set(const Property& prop) {
+		bool set(const Property& prop) {
 			bool res = Helper::Set(*_pCam, prop);
 			
 			// Update memory
@@ -136,7 +136,7 @@ namespace CvProperties {
 		}
 		
 		// Getters
-		const std::map<int, Property>& GetAll() const {
+		const std::map<int, Property>& getAll() const {
 			return _pProperties;
 		}
 		

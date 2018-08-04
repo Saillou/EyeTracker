@@ -8,12 +8,17 @@
 
 using namespace CvGui;
 
+// ---- Callbacks ----
+void quit(void* in, void*) {
+	bool* inStop = static_cast<bool*>(in);
+	if(inStop)
+		*inStop = true;	
+}
+
 int main() {
 	// -------------------- Open the cam --------------------
-	cv::Mat frame = cv::Mat::zeros(480, 640, CV_8UC3);
-	cv::VideoCapture cap(0);
-	
-	if(!cap.isOpened())
+	std::shared_ptr<cv::VideoCapture> pCap = std::make_shared<cv::VideoCapture>(0);
+	if(!pCap || !pCap->isOpened())
 		return 0;
 	
 	// ---------------- Create Video Streamer ----------------
@@ -21,7 +26,8 @@ int main() {
 	managerConnection.initialize();
 	Dk::VideoStreamWriter videoWriter(managerConnection, 3000);
 	
-	if(!videoWriter.startBroadcast(frame))
+	Protocole::FormatStream format = videoWriter.startBroadcast(pCap);
+	if(!format)
 		return 0;
 
 	// ------ Create GUI ------
@@ -34,19 +40,13 @@ int main() {
 	
 	// Attach events
 	bool stop = false;
-	button->listen(PushButton::onClick, [=](void* in, void*) {
-		bool* inStop = static_cast<bool*>(in);
-		if(inStop)
-			*inStop = true;
-		
-	}, (void*)(&stop));
+	button->listen(PushButton::onClick, quit, (void*)(&stop));
 
 	// ----------------- Update continuously -----------------	
 	Chronometre chrono;		
 	gui.show();
 	while(!stop) {
-		cap >> frame;
-		videoWriter.update(frame);
+		videoWriter.update();
 		
 		// Display info
 		if(chrono.elapsed_ms() >= 1000) { 			
@@ -59,7 +59,7 @@ int main() {
 		
 		gui.wait(5);
 	}
-	
+
 	videoWriter.release();
 	return 0;	
 }
