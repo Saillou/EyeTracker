@@ -196,7 +196,7 @@ const cv::Mat VideoStreamWriter::update() {
 	// Read camera
 	if(!_pCam || !_pCam->isOpened())
 		return newFrame;
-	
+	_pCam->grab();
 	_pCam->retrieve(newFrame);
 	
 	// Should be same format as the inital one
