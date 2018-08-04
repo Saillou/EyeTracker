@@ -4,6 +4,7 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <mutex>
 
 #include <turbojpeg.h>
 
@@ -30,7 +31,7 @@ namespace Dk {
 		~VideoStream();
 	
 		// Methods
-		bool initFormat();
+		const Protocole::FormatStream initFormat();
 		bool release();
 		
 		bool play();
@@ -45,18 +46,22 @@ namespace Dk {
 		double getLag() const;
 		bool isValide() const;
 		
+		const cv::Mat getFrame();
+		
 	private:
 		// Methods
 		bool _askFrame();
 		
 		// Members
 		ManagerConnection::IpAdress _ipServer;
-		std::shared_ptr<Socket> 		_sock;
-		tjhandle 								_jpegDecompressor;
+		std::shared_ptr<Socket> 	_sock;
+		tjhandle 					_jpegDecompressor;
 		
 		cv::Mat _frame;
+		cv::Mat _frameCpy;
+		std::mutex _mutexFrameCpy;
 		
-		bool 	_valide;
+		bool _valide;
 		
 		// Thread use
 		std::atomic<RunningState> _atomState{NOT_DEFINED};
@@ -64,6 +69,7 @@ namespace Dk {
 		std::atomic<double> _atomLag{0.0};
 		
 		std::thread* _threadRun;
+		Protocole::FormatStream _format;
 	};
 }
 

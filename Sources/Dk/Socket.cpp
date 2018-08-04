@@ -31,10 +31,10 @@ bool Socket::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 	
 	if(_type == NONE) 
 		return false;
-	else	if(_type == TCP)
-		_idSocket = (int)socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-	else	if(_type == UDP) 
-		_idSocket = (int)socket(PF_INET, SOCK_DGRAM, 0);
+	else if(_type == TCP)
+		_idSocket = static_cast<int>(socket(PF_INET, SOCK_STREAM, IPPROTO_TCP));
+	else if(_type == UDP) 
+		_idSocket = static_cast<int>(socket(PF_INET, SOCK_DGRAM, 0));
 	else {
 		_type = NONE;
 		std::cout << "[Socket] Type not recognized." << std::endl;

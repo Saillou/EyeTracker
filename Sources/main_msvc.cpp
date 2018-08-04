@@ -8,12 +8,29 @@
 
 using namespace CvGui;
 
+// ---- Callbacks -----
+void manageStream(void* in, void*) {
+	Dk::VideoStream* inVideo = static_cast<Dk::VideoStream*>(in);
+	if(inVideo) {	
+		switch(inVideo->getState()) {
+			case Dk::PAUSED: inVideo->play(); break;
+			case Dk::PLAYING: inVideo->pause(); break;
+		}
+	}	
+}
+
+void quit(void* in, void*) {
+	bool* inStop = static_cast<bool*>(in);
+	if(inStop)
+		*inStop = true;	
+}
+
 int main() {
 	// ------------------------ Search server  ---------------------- //
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	
-	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.40", 3000), ManagerConnection::IpAdress("192.168.128.60", 3000), 1);	
+	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.30", 3000), ManagerConnection::IpAdress("192.168.128.60", 3000), 1);	
 	if(ipOpened.size() == 0)
 		return 0;
 	// -------------------------------------------------------------- //
@@ -24,43 +41,47 @@ int main() {
 	if(!video.isValide())
 		return 0;
 	
-	if(!video.initFormat())
+	Protocole::FormatStream format = video.initFormat();
+	if(!format)
 		return 0;
 	
 	// Start stream [Play in its own thread]
 	video.play();
 	
 	// ------ Create GUI ------
+	cv::Mat frame = cv::Mat::zeros(format.height, format.width, format.channels == 1 ? CV_8UC1 : CV_8UC3);
+	
 	Gui<AddPolicy::Col> gui;
 	auto interface0 = gui.createInterface();
-	auto button 	= std::make_shared<PushButton>("Play/Pause", cv::Size(150, 50));
-
-	interface0->add(button);
-	gui.add(interface0);
+	auto btn 	= std::make_shared<PushButton>("Play/Pause", cv::Size(150, 50));
+	auto btnQ	= std::make_shared<PushButton>("Quit", cv::Size(150, 50));
+	auto screen	= std::make_shared<Displayable>("Frame", frame);
+	
+	interface0->add(btn);
+	interface0->add(btnQ);
+	gui.add(interface0, screen);
 	
 	// Listen event
-	button->listen(PushButton::onClick, [=](void* in, void*) {
-		Dk::VideoStream* inVideo = static_cast<Dk::VideoStream*>(in);
-		if(inVideo) {	
-			switch(inVideo->getState()) {
-				case Dk::PAUSED: inVideo->play(); break;
-				case Dk::PLAYING: inVideo->pause(); break;
-			}
-		}
-	}, (void*)(&video));
+	bool stop = false;
+	
+	btn->listen(PushButton::onClick, manageStream, (void*)(&video));	// Play/Pause video
+	btnQ->listen(PushButton::onClick, quit, (void*)(&stop));			// Quit application
 	
 	// ----------------- Update continuously -----------------	
 	Chronometre chrono;
 	gui.show();
-	while(gui.wait(5) != gui.KEY_ESCAPE) {
+	while(!stop) {
 		// Display info
 		if(chrono.clock_ms() >= 1000) { 			
 			std::cout << "Freq: " << ((int)(10*video.getFpsRate()))/10.0 << " hz \t | \t Lag: " << video.getLag() << " ms." << std::endl;
 			chrono.reset();
 		}
 		
+		// Do things
+		screen->setFrame(video.getFrame());
+		
 		// Sleep a bit
-		Chronometre::wait(5);
+		gui.wait(30);
 	}
 	
 	video.release();

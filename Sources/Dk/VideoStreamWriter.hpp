@@ -59,9 +59,7 @@ namespace Dk {
 		std::thread* _threadClients;
 		std::thread* _threadCompress;
 		
-		int _widthFrame;
-		int _heightFrame;
-		int _channelFrame;
+		Protocole::FormatStream _format;
 		cv::Mat _frameToCompress;
 	};
 }

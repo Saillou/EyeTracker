@@ -11,6 +11,31 @@
 #include "ProtocoleActionCode.hpp"
 
 namespace Protocole {
+	// Format
+	struct FormatStream {
+		// Constructor
+		FormatStream(int h = 0, int w = 0, int c = 0) : 
+			height(h),
+			width(w),
+			channels(c)
+		{	}
+		
+		// Methods
+		bool isEmpty() const {
+			return height*width*channels == 0;
+		}
+		explicit operator bool() const { 
+			return !isEmpty(); 
+		}
+		
+		// Datas
+		int height;
+		int width;
+		int channels;
+		
+		// .. to be continued
+	};
+	
 	// Base messages
 	class Message {
 	public:

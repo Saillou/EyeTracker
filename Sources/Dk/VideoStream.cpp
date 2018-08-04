@@ -9,8 +9,10 @@ VideoStream::VideoStream(ManagerConnection& managerConnection, const ManagerConn
 	_sock(managerConnection.connectTo(Socket::TCP, Socket::BLOCKING, ipServer.toString(), ipServer.getPort())),
 	_jpegDecompressor(tjInitDecompress()),
 	_frame(cv::Mat()),
+	_frameCpy(cv::Mat()),
 	_valide(false),
-	_threadRun(nullptr)
+	_threadRun(nullptr),
+	_format(/*Height*/0, /*Width*/0, /*Channels*/0)
 {
 	// Check intialization
 	if(_sock == nullptr) 
@@ -68,9 +70,9 @@ void VideoStream::run() {
 	}
 }
 
-bool VideoStream::initFormat() {
-	if(!_valide)
-		return false;
+const FormatStream VideoStream::initFormat() {
+	if(!_valide) // Class initialization is ok?
+		return _format;
 	
 	// Ask frame info	 and read answer
 	BinMessage msg;
@@ -78,17 +80,17 @@ bool VideoStream::initFormat() {
 
 	if(_sock->write(msg) && _sock->read(msg)) {
 		CmdMessage cmd(Message::To_string(msg.getData()));
-		const int WIDTH 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second);
-		const int HEIGHT 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second);
-		const int CHANNEL 	= (int)Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second);
+		_format.width 	 = static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second));
+		_format.height 	 = static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second));
+		_format.channels = static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second));
 		
-		if(WIDTH*CHANNEL*HEIGHT > 0) {
-			_frame = cv::Mat::zeros(HEIGHT, WIDTH, CHANNEL == 1 ? CV_8UC1 : CV_8UC3);
-			return true;
+		if(!_format.isEmpty()) {
+			_frame 		= cv::Mat::zeros(_format.height, _format.width, _format.channels == 1 ? CV_8UC1 : CV_8UC3);
+			_frameCpy 	= _frame.clone();
 		}
 	}
 	
-	return false;
+	return _format;
 }
 
 bool VideoStream::play() {
@@ -124,9 +126,22 @@ bool VideoStream::_askFrame() {
 		if(msg.getSize() == 0) 
 			return false;
 		
-		tjDecompress2(_jpegDecompressor, (const unsigned char*)msg.getData().data(), (unsigned long)msg.getSize(), _frame.data, _frame.cols, 0, _frame.rows, _frame.channels() == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT);
+		tjDecompress2(
+			_jpegDecompressor, 
+			reinterpret_cast<const unsigned char*>(msg.getData().data()), 
+			static_cast<unsigned long>(msg.getSize()), 
+			_frame.data, 
+			_frame.cols, 
+			0, 
+			_frame.rows, 
+			_frame.channels() == 1 ? TJPF_GRAY : TJPF_BGR, TJFLAG_FASTDCT
+		);
+		
 		if(!_frame.empty()) {
-			cv::imshow("Frame", _frame);
+			_mutexFrameCpy.lock();
+			_frameCpy = _frame.clone();
+			_mutexFrameCpy.unlock();
+			// cv::imshow("Frame", _frame);
 			return true; // Emit
 		}
 	}
@@ -165,3 +180,12 @@ bool VideoStream::isValide() const {
 	return _valide;
 }
 
+const cv::Mat VideoStream::getFrame() {
+	cv::Mat frame;
+	
+	_mutexFrameCpy.lock();
+	frame = _frameCpy.clone();
+	_mutexFrameCpy.unlock();
+	
+	return frame;
+}

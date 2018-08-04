@@ -20,9 +20,9 @@ bool Server::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 	// Type define id
 	if(_type == NONE)
 		return false;
-	else	if(_type == TCP)
+	else if(_type == TCP)
 		_idSocket = (int)socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-	else	if(_type == UDP)
+	else if(_type == UDP)
 		_idSocket = (int)socket(PF_INET, SOCK_DGRAM, 0);
 	else {
 		_type = NONE;
@@ -34,9 +34,9 @@ bool Server::initialize(const CONNECTION_TYPE type, const CONNECTION_MODE mode)	
 	struct sockaddr_in  serverEcho;
 	memset(&serverEcho, 0, sizeof(serverEcho));
 	
-	serverEcho.sin_family		 	= AF_INET;
+	serverEcho.sin_family		= AF_INET;
 	serverEcho.sin_addr.s_addr	= htonl(INADDR_ANY);
-	serverEcho.sin_port				= htons(_port);	
+	serverEcho.sin_port			= htons(_port);	
 	
 	// Try bind
 	if(bind(_idSocket, (struct sockaddr*)&serverEcho, sizeof(serverEcho)) == SOCKET_ERROR) {

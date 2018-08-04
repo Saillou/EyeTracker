@@ -14,9 +14,7 @@ VideoStreamWriter::VideoStreamWriter(ManagerConnection& managerConnection, const
 	_valide(false),
 	_threadClients(nullptr),
 	_threadCompress(nullptr),
-	_widthFrame(0),
-	_heightFrame(0),
-	_channelFrame(0)
+	_format(/*Height*/0, /*Width*/0, /*Channels*/0)
 {
 	_valide = _server != nullptr && _jpegCompressor != NULL;
 }
@@ -92,9 +90,9 @@ bool VideoStreamWriter::_treatClient(const int idClient, const size_t action) {
 		case BIN_INFO:
 		{ 
 			CmdMessage cmd;
-			cmd.addCommand(CMD_HEIGHT, 	std::to_string(_heightFrame));
-			cmd.addCommand(CMD_WIDTH, 	std::to_string(_widthFrame));
-			cmd.addCommand(CMD_CHANNEL,	std::to_string(_channelFrame));
+			cmd.addCommand(CMD_HEIGHT, 	std::to_string(_format.height));
+			cmd.addCommand(CMD_WIDTH, 	std::to_string(_format.width));
+			cmd.addCommand(CMD_CHANNEL,	std::to_string(_format.channels));
 			
 			msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
 			_server->write(msg, idClient);
@@ -157,12 +155,12 @@ bool VideoStreamWriter::startBroadcast(const cv::Mat& frameInit) {
 	if(!_valide || frameInit.empty())
 		return false;
 	
-	// Init buffer 
-	_widthFrame 		= frameInit.cols;
-	_heightFrame 	= frameInit.rows;
-	_channelFrame 	= frameInit.channels();
-	_compressFrame(frameInit);
+	// Init buffer  
+	_format.width 	 = frameInit.cols;
+	_format.height 	 = frameInit.rows;
+	_format.channels = frameInit.channels();
 	
+	_compressFrame(frameInit);
 	_atomRunning = true;
 	
 	if(_threadClients == nullptr)
@@ -175,11 +173,11 @@ bool VideoStreamWriter::startBroadcast(const cv::Mat& frameInit) {
 }
 void VideoStreamWriter::update(const cv::Mat& newFrame) {
 	// Need to be same format as the inital one
-	if(newFrame.cols != _widthFrame || newFrame.rows != _heightFrame || newFrame.channels() != _channelFrame)
+	if(newFrame.cols != _format.width || newFrame.rows != _format.height || newFrame.channels() != _format.channels)
 		return;
 	
 	_frameToCompress 	= newFrame;
-	_atomImageUpdated = true;	
+	_atomImageUpdated 	= true;	
 }
 void VideoStreamWriter::release() {
 	_atomRunning = false;	
