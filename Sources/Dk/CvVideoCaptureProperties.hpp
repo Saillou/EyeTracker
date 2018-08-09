@@ -4,7 +4,6 @@
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 
-#include <utility>
 #include <string>
 #include <memory>
 #include <map>
