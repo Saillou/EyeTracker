@@ -31,7 +31,7 @@ namespace Dk {
 		~VideoStream();
 	
 		// Methods
-		const Protocole::FormatStream initFormat();
+		const Protocole::FormatStream& initFormat();
 		bool release();
 		
 		bool play();
@@ -40,12 +40,16 @@ namespace Dk {
 		
 		void run();
 		
-		// Getter
+		// Setters
+		bool setFormat(const Protocole::FormatStream& format);
+		
+		// Getters
 		RunningState getState() const;
 		double getFpsRate() const;
 		double getLag() const;
 		bool isValide() const;
 		
+		const Protocole::FormatStream& getFormat() const;
 		const cv::Mat getFrame();
 		
 	private:
@@ -59,17 +63,18 @@ namespace Dk {
 		
 		cv::Mat _frame;
 		cv::Mat _frameCpy;
-		std::mutex _mutexFrameCpy;
+		Protocole::FormatStream _format;
 		
 		bool _valide;
 		
-		// Thread use
+		// Thread share
 		std::atomic<RunningState> _atomState{NOT_DEFINED};
 		std::atomic<double> _atomFps{0.0};
 		std::atomic<double> _atomLag{0.0};
 		
 		std::thread* _threadRun;
-		Protocole::FormatStream _format;
+		std::mutex _mutexSock;
+		std::mutex _mutexFrameCpy;
 	};
 }
 

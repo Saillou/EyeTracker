@@ -88,22 +88,9 @@ bool VideoStreamWriter::_treatClient(const int idClient, const size_t action) {
 		break;
 		
 		// Frame info asked
-		case BIN_INFO:
-		{ 
-			CmdMessage cmd;
-			cmd.addCommand(CMD_HEIGHT, 		std::to_string(_format.height));
-			cmd.addCommand(CMD_WIDTH, 		std::to_string(_format.width));
-			cmd.addCommand(CMD_CHANNEL,		std::to_string(_format.channels));
-			cmd.addCommand(CMD_FPS,			std::to_string(_format.fps));
-			cmd.addCommand(CMD_HUE,			std::to_string(_format.hue));
-			cmd.addCommand(CMD_SATURATION,	std::to_string(_format.saturation));
-			cmd.addCommand(CMD_BRIGHTNESS,	std::to_string(_format.brightness));
-			cmd.addCommand(CMD_CONTRAST,	std::to_string(_format.contrast));
-			cmd.addCommand(CMD_EXPOSURE,	std::to_string(_format.exposure));
-			
-			msg.set(BIN_MCMD, Message::To_string(cmd.serialize()));
+		case BIN_INFO:		
+			msg.set(BIN_MCMD, Message::To_string(_format.toCmd().serialize()));
 			_server->write(msg, idClient);
-		}
 		break;
 		
 		// Send a frame

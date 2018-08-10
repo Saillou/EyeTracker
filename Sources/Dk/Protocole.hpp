@@ -10,42 +10,7 @@
 
 #include "ProtocoleActionCode.hpp"
 
-namespace Protocole {
-	// Format
-	struct FormatStream {
-		// Constructor
-		FormatStream(int h = 0, int w = 0, int c = 0) : 
-			height(h),
-			width(w),
-			channels(c),
-			fps(0),
-			hue(-1),
-			saturation(-1),
-			brightness(-1),
-			contrast(-1),
-			exposure(-1)
-		{	/* Nothing else to do. */	}
-		
-		// Methods
-		bool isEmpty() const {
-			return height*width*channels == 0;
-		}
-		explicit operator bool() const { 
-			return !isEmpty(); 
-		}
-		
-		// Datas
-		int height;
-		int width;
-		int channels;
-		int fps;
-		double hue;
-		double saturation;
-		double brightness;
-		double contrast;
-		double exposure;
-	};
-	
+namespace Protocole {	
 	// Base messages
 	class Message {
 	public:
@@ -168,6 +133,30 @@ namespace Protocole {
 	private:
 		// Members
 		std::vector<Command> _commands;
+	};
+	
+	
+	// Format
+	struct FormatStream {
+		// Constructor
+		FormatStream(int h = 0, int w = 0, int c = 0);
+		
+		// Methods
+		bool isEmpty() const;
+		
+		void fromCmd(const CmdMessage& cmd);
+		const CmdMessage toCmd() const;
+		
+		// Datas
+		int height;
+		int width;
+		int channels;
+		int fps;
+		double hue;
+		double saturation;
+		double brightness;
+		double contrast;
+		double exposure;
 	};
 }
 

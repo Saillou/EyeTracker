@@ -8,6 +8,8 @@
 
 using namespace CvGui;
 
+Protocole::FormatStream format;
+
 // --- Str ---
 struct strChangeParam {
 	int cvParam;
@@ -44,7 +46,17 @@ void changeParam(void* in, void* out) {
 		return;
 	
 	// Do something
-	std::cout << CV_PARAM << " for " << video << " will be " << " : " << value << std::endl;
+	switch(CV_PARAM) {
+		case cv::CAP_PROP_EXPOSURE: 	format.exposure 	= value; break;
+		case cv::CAP_PROP_BRIGHTNESS: 	format.brightness 	= value; break;
+		case cv::CAP_PROP_CONTRAST: 	format.contrast 	= value; break;
+		case cv::CAP_PROP_HUE: 			format.hue 			= value; break;
+		case cv::CAP_PROP_SATURATION: 	format.saturation 	= value; break;
+		
+		default: return; // Nothing changed.
+	}
+	
+	video->setFormat(format);
 }
 
 void quit(void* in, void*) {
@@ -72,8 +84,8 @@ int main() {
 	if(!video.isValide())
 		return 0;
 	
-	Protocole::FormatStream format = video.initFormat();
-	if(!format)
+	format = video.initFormat();
+	if(format.isEmpty())
 		return 0;
 	
 	// Start stream [Play in its own thread]
@@ -90,10 +102,10 @@ int main() {
 	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ", 		-15, -1, (int)format.exposure);
 	auto cbExposure 	= std::make_shared<CheckBox>("Auto ");
 	
-	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ", 	-100, 100, (int)format.brightness);
-	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ", 		-100, 100, (int)format.contrast);
-	auto tbHue			= std::make_shared<TrackBar>("Hue: ", 			-100, 100, (int)format.hue);
-	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ", 	-100, 100, (int)format.saturation);
+	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ", 	-100, 100, 	(int)format.brightness);
+	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ", 		0, 100, 	(int)format.contrast);
+	auto tbHue			= std::make_shared<TrackBar>("Hue: ", 			-100, 100, 	(int)format.hue);
+	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ", 	0, 100, 	(int)format.saturation);
 	
 	auto screen	= std::make_shared<Displayable>("Frame", frame);
 	auto margin	= std::make_shared<Spacer>(cv::Size(25,25));

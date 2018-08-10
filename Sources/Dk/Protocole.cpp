@@ -2,6 +2,53 @@
 
 using namespace Protocole;
 
+// -------------------- FormatStream --------------------
+FormatStream::FormatStream(int h, int w, int c) : 
+	height(h),
+	width(w),
+	channels(c),
+	fps(0),
+	hue(-1),
+	saturation(-1),
+	brightness(-1),
+	contrast(-1),
+	exposure(-1)
+{	
+	/* Nothing else to do. */	
+}
+
+// Methods
+bool FormatStream::isEmpty() const {
+	return height*width*channels == 0;
+}
+
+void FormatStream::fromCmd(const CmdMessage& cmd) {
+	width 	 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second));
+	height 	 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second));
+	channels 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second));
+	fps 		= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_FPS).second));
+	hue 		= Message::To_double(cmd.getCommand(CMD_HUE).second);
+	saturation 	= Message::To_double(cmd.getCommand(CMD_SATURATION).second);
+	brightness	= Message::To_double(cmd.getCommand(CMD_BRIGHTNESS).second);
+	contrast 	= Message::To_double(cmd.getCommand(CMD_CONTRAST).second);
+	exposure 	= Message::To_double(cmd.getCommand(CMD_EXPOSURE).second);	
+}
+const CmdMessage FormatStream::toCmd() const {
+	CmdMessage cmd;
+	
+	cmd.addCommand(CMD_HEIGHT, 		std::to_string(height));
+	cmd.addCommand(CMD_WIDTH, 		std::to_string(width));
+	cmd.addCommand(CMD_CHANNEL,		std::to_string(channels));
+	cmd.addCommand(CMD_FPS,			std::to_string(fps));
+	cmd.addCommand(CMD_HUE,			std::to_string(hue));
+	cmd.addCommand(CMD_SATURATION,	std::to_string(saturation));
+	cmd.addCommand(CMD_BRIGHTNESS,	std::to_string(brightness));
+	cmd.addCommand(CMD_CONTRAST,	std::to_string(contrast));
+	cmd.addCommand(CMD_EXPOSURE,	std::to_string(exposure));
+	
+	return cmd;
+}
+
 // -------------------- Base message --------------------
 Message::Message() {
 	// Is there something to do?

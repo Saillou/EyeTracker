@@ -27,7 +27,7 @@ int main() {
 	Dk::VideoStreamWriter videoWriter(managerConnection, 3000);
 	
 	Protocole::FormatStream format = videoWriter.startBroadcast(pCap);
-	if(!format)
+	if(format.isEmpty())
 		return 0;
 
 	// ------ Create GUI ------

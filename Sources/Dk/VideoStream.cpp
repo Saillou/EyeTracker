@@ -70,25 +70,17 @@ void VideoStream::run() {
 	}
 }
 
-const FormatStream VideoStream::initFormat() {
+const FormatStream& VideoStream::initFormat() {
 	if(!_valide) // Class initialization is ok?
-		return _format;
+		return getFormat();
 	
-	// Ask frame info	 and read answer
+	// Ask frame info and read answer
 	BinMessage msg;
 	msg.set(BIN_INFO, "");
 
 	if(_sock->write(msg) && _sock->read(msg)) {
 		CmdMessage cmd(Message::To_string(msg.getData()));
-		_format.width 	 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_WIDTH).second));
-		_format.height 	 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_HEIGHT).second));
-		_format.channels 	= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_CHANNEL).second));
-		_format.fps 		= static_cast<int>(Message::To_unsignedInt(cmd.getCommand(CMD_FPS).second));
-		_format.hue 		= Message::To_double(cmd.getCommand(CMD_HUE).second);
-		_format.saturation 	= Message::To_double(cmd.getCommand(CMD_SATURATION).second);
-		_format.brightness 	= Message::To_double(cmd.getCommand(CMD_BRIGHTNESS).second);
-		_format.contrast 	= Message::To_double(cmd.getCommand(CMD_CONTRAST).second);
-		_format.exposure 	= Message::To_double(cmd.getCommand(CMD_EXPOSURE).second);
+		_format.fromCmd(cmd);
 	
 		if(!_format.isEmpty()) {
 			_frame 		= cv::Mat::zeros(_format.height, _format.width, _format.channels == 1 ? CV_8UC1 : CV_8UC3);
@@ -96,7 +88,7 @@ const FormatStream VideoStream::initFormat() {
 		}
 	}
 	
-	return _format;
+	return getFormat();
 }
 
 bool VideoStream::play() {
@@ -124,11 +116,16 @@ bool VideoStream::_askFrame() {
 	BinMessage msg;
 	msg.set(BIN_GAZO, "");
 	
-	if(!_sock->write(msg)) 
+	_mutexSock.lock();
+	if(!_sock->write(msg)) {
+		_mutexSock.unlock();
 		return false;
+	}
 	
 	// Answer
 	if(_sock->read(msg)) {
+		_mutexSock.unlock();
+		
 		if(msg.getSize() == 0) 
 			return false;
 		
@@ -172,7 +169,37 @@ bool VideoStream::release() {
 	return true;
 }
 
+// Setters
+bool VideoStream::setFormat(const Protocole::FormatStream& format) {
+	if(!_valide) // Class initialization is ok?
+		return false;
+		
+	// Cannot change frame parameters
+	if(format.height != _format.height || format.width != _format.width || format.channels != _format.channels)
+		return false;
+	
+	// Create request to change format
+	BinMessage msg;
+	msg.set(BIN_INFO, Message::To_string(format.toCmd().serialize()));
+
+	// Send and read answer -> actualize new format
+	_mutexSock.lock();
+	if(_sock->write(msg) && _sock->read(msg)) {
+		_mutexSock.unlock();
+		
+		CmdMessage cmd(Message::To_string(msg.getData()));
+		_format.fromCmd(cmd);
+		
+		return true;
+	}	
+	
+	return false; // Read or write went wrong
+}
+
 // Getters
+const Protocole::FormatStream& VideoStream::getFormat() const {
+	return _format;
+}
 RunningState VideoStream::getState() const {
 	return _atomState;
 }
