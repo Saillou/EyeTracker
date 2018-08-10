@@ -8,6 +8,12 @@
 
 using namespace CvGui;
 
+// --- Str ---
+struct strChangeParam {
+	int cvParam;
+	Dk::VideoStream* ptrVideo;
+};
+
 // ---- Callbacks -----
 void manageStream(void* in, void*) {
 	Dk::VideoStream* inVideo = static_cast<Dk::VideoStream*>(in);
@@ -21,18 +27,24 @@ void manageStream(void* in, void*) {
 
 void changeParam(void* in, void* out) {
 	// Get values
-	int* pCvParam = static_cast<int*>(in);
-	if(!pCvParam)
+	strChangeParam* ptrParam = static_cast<strChangeParam*>(in);
+	if(!ptrParam)
 		return;
 	
 	int* pTrackValue = static_cast<int*>(out);
 	if(!pTrackValue)
 		return;
 	
+	// Get datas
+	int value 				= *pTrackValue;
+	const int CV_PARAM 		= ptrParam->cvParam;
+	Dk::VideoStream* video 	= ptrParam->ptrVideo;
+	
+	if(!video)
+		return;
+	
 	// Do something
-	const int CV_PARAM 	= *cvParam;
-	int value 			= *pTrackValue;
-	std::cout << CV_PARAM << " : " << value << std::endl;
+	std::cout << CV_PARAM << " for " << video << " will be " << " : " << value << std::endl;
 }
 
 void quit(void* in, void*) {
@@ -67,15 +79,13 @@ int main() {
 	// Start stream [Play in its own thread]
 	video.play();
 	
-	// ------ Create GUI ------
+	// ------ GUI ------
 	cv::Mat frame = cv::Mat::zeros(format.height, format.width, format.channels == 1 ? CV_8UC1 : CV_8UC3);
-	
 	Gui<AddPolicy::Col> gui;
-	auto interface0 = gui.createInterface();
-	auto btn 	= std::make_shared<PushButton>("Play/Pause", cv::Size(150, 50));
-	auto btnQ	= std::make_shared<PushButton>("Quit", cv::Size(150, 50));
-	interface0->add(btn);
-	interface0->add(btnQ);
+	
+	// Widgets
+	auto buttonPlay 	= std::make_shared<PushButton>("Play/Pause", cv::Size(150, 50));
+	auto buttonQuit		= std::make_shared<PushButton>("Quit", cv::Size(150, 50));
 	
 	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ");
 	auto cbExposure 	= std::make_shared<CheckBox>("Auto ");
@@ -85,27 +95,41 @@ int main() {
 	auto tbHue			= std::make_shared<TrackBar>("Hue: ");
 	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ");
 	
-	auto interfaceExpo 	= gui.createInterface();
-	auto interface1 	= gui.createInterface();
+	auto screen	= std::make_shared<Displayable>("Frame", frame);
+	auto margin	= std::make_shared<Spacer>(cv::Size(25,25));
 	
+	// Interfaces
+	auto interface0 	= gui.createInterface();
+	interface0->add(margin, buttonPlay, margin);
+	interface0->add(margin, buttonQuit, margin);
+	
+	auto interfaceExpo 	= gui.createInterface();
 	interfaceExpo->add(tbExposure);
 	interfaceExpo->add(cbExposure);
+	
+	auto interface1 	= gui.createInterface();
 	interface1->add(interfaceExpo, tbBrightness, tbContrast, tbHue, tbSaturation);
 	
-	auto interface2 = gui.createInterface();
-	auto screen	= std::make_shared<Displayable>("Frame", frame);
-	interface2->add(std::make_shared<Spacer>(cv::Size(25,25)));
+	auto interface2 	= gui.createInterface();
+	interface2->add(margin);
 	interface2->add(interface1);
-	interface2->add(screen);
-	interface2->add(std::make_shared<Spacer>(cv::Size(25,25)));
-	gui.add(std::make_shared<Spacer>(cv::Size(25,25)), interface0, std::make_shared<Spacer>(cv::Size(25,25)), interface2, std::make_shared<Spacer>(cv::Size(25,25)));
+	interface2->add(margin, screen, margin);
+	interface2->add(margin);
+	
+	gui.add(interface0, interface2);
 	
 	// Listen events
 	bool stop = false;
-	std::vector<int> params {cv::CAP_PROP_EXPOSURE, cv::CAP_PROP_BRIGHTNESS, cv::CAP_PROP_CONTRAST, cv::CAP_PROP_HUE, cv::CAP_PROP_SATURATION};
-	
-	btn->listen(PushButton::onClick, manageStream, (void*)(&video));	// Play/Pause video
-	btnQ->listen(PushButton::onClick, quit, (void*)(&stop));			// Quit application
+	std::vector<strChangeParam> params {
+		{cv::CAP_PROP_EXPOSURE, 	&video},
+		{cv::CAP_PROP_BRIGHTNESS, 	&video},
+		{cv::CAP_PROP_CONTRAST, 	&video},
+		{cv::CAP_PROP_HUE, 			&video},
+		{cv::CAP_PROP_SATURATION, 	&video}
+	};
+
+	buttonPlay->listen(PushButton::onClick, manageStream, (void*)(&video));	// Play/Pause video
+	buttonQuit->listen(PushButton::onClick, quit, (void*)(&stop));			// Quit application
 	
 	tbExposure	->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[0]));
 	tbBrightness->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[1]));
