@@ -73,7 +73,7 @@ public:
 		
 		// Invoke callbacks
 		if(valueBefore != _isChecked) 
-			_invokeCallback(Widget::onValueChanged);
+			_invokeCallback(Widget::onValueChanged, &_isChecked);
 		_invokeCallback(event);
 		
 		return update;

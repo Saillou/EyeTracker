@@ -20,15 +20,19 @@ void manageStream(void* in, void*) {
 }
 
 void changeParam(void* in, void* out) {
-	int* idParam = static_cast<int*>(in);
-	if(!idParam)
+	// Get values
+	int* pCvParam = static_cast<int*>(in);
+	if(!pCvParam)
 		return;
 	
-	int* value = static_cast<int*>(out);
-	if(!out)
+	int* pTrackValue = static_cast<int*>(out);
+	if(!pTrackValue)
 		return;
 	
-	std::cout << *idParam << " : " << *value << std::endl;
+	// Do something
+	const int CV_PARAM 	= *cvParam;
+	int value 			= *pTrackValue;
+	std::cout << CV_PARAM << " : " << value << std::endl;
 }
 
 void quit(void* in, void*) {
