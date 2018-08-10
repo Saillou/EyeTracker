@@ -19,6 +19,18 @@ void manageStream(void* in, void*) {
 	}	
 }
 
+void changeParam(void* in, void* out) {
+	int* idParam = static_cast<int*>(in);
+	if(!idParam)
+		return;
+	
+	int* value = static_cast<int*>(out);
+	if(!out)
+		return;
+	
+	std::cout << *idParam << " : " << *value << std::endl;
+}
+
 void quit(void* in, void*) {
 	bool* inStop = static_cast<bool*>(in);
 	if(inStop)
@@ -86,9 +98,16 @@ int main() {
 	
 	// Listen events
 	bool stop = false;
+	std::vector<int> params {cv::CAP_PROP_EXPOSURE, cv::CAP_PROP_BRIGHTNESS, cv::CAP_PROP_CONTRAST, cv::CAP_PROP_HUE, cv::CAP_PROP_SATURATION};
 	
 	btn->listen(PushButton::onClick, manageStream, (void*)(&video));	// Play/Pause video
 	btnQ->listen(PushButton::onClick, quit, (void*)(&stop));			// Quit application
+	
+	tbExposure	->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[0]));
+	tbBrightness->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[1]));
+	tbContrast	->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[2]));
+	tbHue		->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[3]));
+	tbSaturation->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[4]));
 	
 	// ----------------- Update continuously -----------------	
 	Chronometre chrono;

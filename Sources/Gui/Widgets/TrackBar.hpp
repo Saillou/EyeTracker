@@ -99,7 +99,7 @@ public:
 		
 		// Invoke callbacks
 		if(valueBefore != _value) 
-			_invokeCallback(Widget::onValueChanged);
+			_invokeCallback(Widget::onValueChanged, &_value);
 		_invokeCallback(event);
 		
 		return update;
