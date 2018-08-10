@@ -136,16 +136,16 @@ ManagerConnection::IpAdress ManagerConnection::getMyDHCP() const {
 			// Media connected with an IPv4
 			if(sck.iSockaddrLength > 0 && sck.lpSockaddr->sa_family == AF_INET) {
 				struct sockaddr_in* addr = (struct sockaddr_in*)(sck.lpSockaddr);
-				char ipAddress[INET_ADDRSTRLEN];
-				inet_ntop(AF_INET, &(addr->sin_addr), ipAddress, INET_ADDRSTRLEN);
+				char strAdress[INET_ADDRSTRLEN];
+				inet_ntop(AF_INET, &(addr->sin_addr), strAdress, INET_ADDRSTRLEN);
 				
 				// Update last adress
-				ipAdress = IpAdress(ipAddress, (int)addr->sin_port);
+				ipAdress = IpAdress(strAdress, (int)addr->sin_port);
 				
 				// Display info
 				printf("\t Friendly name: .... : %wS\n", pCurrAddresses->FriendlyName);
 				printf("\t Description: ...... : %wS\n", pCurrAddresses->Description);
-				printf("\t IPv4: ............. : %s\n", ipAddress);
+				printf("\t IPv4: ............. : %s\n", strAdress);
 				printf("\t Port: ............. : %d\n", addr->sin_port);
 				printf("\n");
 				
@@ -156,6 +156,27 @@ ManagerConnection::IpAdress ManagerConnection::getMyDHCP() const {
 
 	if (pAddresses)
 		free(pAddresses);
+#else
+    struct ifaddrs *interfaces = NULL;
+    struct ifaddrs *temp_addr = NULL;
+    int success = 0;
+	
+    // retrieve the current interfaces - returns 0 on success
+    success = getifaddrs(&interfaces);
+    if (success == 0) {
+        // Loop through linked list of interfaces
+        temp_addr = interfaces;
+        while(temp_addr != NULL) {
+            if(temp_addr->ifa_addr->sa_family == AF_INET) {
+				std::stirng strAdress = inet_ntoa(((struct sockaddr_in*)temp_addr->ifa_addr)->sin_addr);
+				ipAdress  = IpAdress(strAdress, 0);
+				break; // Need only one
+            }
+            temp_addr = temp_addr->ifa_next;
+        }
+    }
+
+	freeifaddrs(interfaces);
 #endif
 	
 	return ipAdress;
