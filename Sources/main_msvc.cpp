@@ -87,13 +87,13 @@ int main() {
 	auto buttonPlay 	= std::make_shared<PushButton>("Play/Pause", 	cv::Size(150, 50));
 	auto buttonQuit		= std::make_shared<PushButton>("Quit", 			cv::Size(150, 50));
 	
-	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ", 		-15, -1, format.exposure);
+	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ", 		-15, -1, (int)format.exposure);
 	auto cbExposure 	= std::make_shared<CheckBox>("Auto ");
 	
-	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ", 	-100, 100, format.brightness);
-	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ", 		-100, 100, format.contrast);
-	auto tbHue			= std::make_shared<TrackBar>("Hue: ", 			-100, 100, format.hue);
-	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ", 	-100, 100, format.saturation);
+	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ", 	-100, 100, (int)format.brightness);
+	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ", 		-100, 100, (int)format.contrast);
+	auto tbHue			= std::make_shared<TrackBar>("Hue: ", 			-100, 100, (int)format.hue);
+	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ", 	-100, 100, (int)format.saturation);
 	
 	auto screen	= std::make_shared<Displayable>("Frame", frame);
 	auto margin	= std::make_shared<Spacer>(cv::Size(25,25));
