@@ -8,12 +8,12 @@ namespace CvGui {
 class CheckBox : public Widget {
 public:	
 	// Constructors
-	explicit CheckBox(const std::string& text = "", const std::string& name = "CheckBox") : 
+	explicit CheckBox(const std::string& text = "", bool state, const std::string& name = "CheckBox") : 
 		Widget(name),
 		_btnText(text),
 		_isDown(false),
 		_mouseOver(false),
-		_isChecked(false)
+		_isChecked(state)
 	{
 		_design();
 	}

@@ -8,12 +8,12 @@ namespace CvGui {
 class TrackBar : public Widget {
 public:	
 	// Constructors
-	explicit TrackBar(const std::string& text = "", int min = 0, int max = 255, const std::string& name = "TrackBar") : 
+	explicit TrackBar(const std::string& text = "", int min = 0, int max = 255, int value = 0, const std::string& name = "TrackBar") : 
 		Widget(name),
 		_lblText(text),
 		_min(min),
 		_max(max),
-		_value(min),
+		_value(value),
 		_isDown(false),
 		_mouseOver(false),
 		_barRect(cv::Rect()),
