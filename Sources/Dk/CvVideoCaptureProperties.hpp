@@ -118,10 +118,7 @@ namespace CvProperties {
 		}
 		
 		// Methods
-		const Property& get(int cvPropertyId, bool update = false) {
-			if(!_pCam)
-				return false;
-			
+		const Property& get(int cvPropertyId, bool update = false) {			
 			if(update)
 				_pProperties[cvPropertyId] = Helper::Get(*_pCam, cvPropertyId);
 			
@@ -138,6 +135,11 @@ namespace CvProperties {
 				_pProperties[prop.id] = prop;
 			
 			return res;
+		}
+		bool set(int cvPropertyId, double manualValue) {
+			auto prop = _pProperties[cvPropertyId];
+			prop.value.manual = manualValue;
+			return set(prop);
 		}
 		
 		// Getters

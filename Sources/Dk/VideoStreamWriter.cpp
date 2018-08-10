@@ -1,5 +1,5 @@
 #include "VideoStreamWriter.hpp"
-#include "CvVideoCaptureProperties.hpp"
+#include "CvVideoCaptureProperties.hpp" // Link
 
 using namespace Dk;
 using namespace Protocole;
@@ -15,7 +15,9 @@ VideoStreamWriter::VideoStreamWriter(ManagerConnection& managerConnection, const
 	_valide(false),
 	_threadClients(nullptr),
 	_threadCompress(nullptr),
-	_format(/*Height*/0, /*Width*/0, /*Channels*/0)
+	_format(/*Height*/0, /*Width*/0, /*Channels*/0),
+	_pCam(nullptr),
+	_camProp(nullptr)
 {
 	_valide = _server != nullptr && _jpegCompressor != NULL;
 }
@@ -158,17 +160,17 @@ const Protocole::FormatStream& VideoStreamWriter::startBroadcast(std::shared_ptr
 	_pCam.swap(pCam);
 	
 	// Read camera format
-	CvProperties::CaptureProperties camProp(_pCam, Dk::CvProperties::Camera);
+	_camProp = std::make_shared<CvProperties::CaptureProperties>(_pCam, Dk::CvProperties::Camera);
 	
-	_format.width 	 	= static_cast<int>(camProp.get(cv::CAP_PROP_FRAME_WIDTH).value.manual);
-	_format.height 	 	= static_cast<int>(camProp.get(cv::CAP_PROP_FRAME_HEIGHT).value.manual);
+	_format.width 	 	= static_cast<int>(_camProp->get(cv::CAP_PROP_FRAME_WIDTH).value.manual);
+	_format.height 	 	= static_cast<int>(_camProp->get(cv::CAP_PROP_FRAME_HEIGHT).value.manual);
 	_format.channels 	= 3;
-	_format.fps 		= static_cast<int>(camProp.get(cv::CAP_PROP_FPS).value.manual);
-	_format.hue 		= camProp.get(cv::CAP_PROP_HUE).value.manual;
-	_format.saturation 	= camProp.get(cv::CAP_PROP_SATURATION).value.manual;
-	_format.brightness 	= camProp.get(cv::CAP_PROP_BRIGHTNESS).value.manual;
-	_format.contrast 	= camProp.get(cv::CAP_PROP_CONTRAST).value.manual;
-	_format.exposure 	= camProp.get(cv::CAP_PROP_EXPOSURE).value.manual;
+	_format.fps 		= static_cast<int>(_camProp->get(cv::CAP_PROP_FPS).value.manual);
+	_format.hue 		= _camProp->get(cv::CAP_PROP_HUE).value.manual;
+	_format.saturation 	= _camProp->get(cv::CAP_PROP_SATURATION).value.manual;
+	_format.brightness 	= _camProp->get(cv::CAP_PROP_BRIGHTNESS).value.manual;
+	_format.contrast 	= _camProp->get(cv::CAP_PROP_CONTRAST).value.manual;
+	_format.exposure 	= _camProp->get(cv::CAP_PROP_EXPOSURE).value.manual;
 	
 	// Init buffer - create a first (black) frame
 	cv::Mat frameInit = cv::Mat::zeros(_format.height, _format.width, _format.channels == 1 ? CV_8UC1 : CV_8UC3);
@@ -187,35 +189,33 @@ const Protocole::FormatStream& VideoStreamWriter::startBroadcast(std::shared_ptr
 
 bool VideoStreamWriter::_changeFormat(const Protocole::FormatStream& format) {
 	// Members initialized and working
-	if(!_valide || !_pCam)
+	if(!_valide || !_pCam || !_camProp)
 		return false;
 		
 	// Cannot change frame parameters
 	if(format.height != _format.height || format.width != _format.width || format.channels != _format.channels)
 		return false;
 	
-	// Get camera properties
-	CvProperties::CaptureProperties camProp(_pCam, Dk::CvProperties::Camera);
-	
+	// Change camera properties	
 	if(_format.hue != format.hue)
-		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
+		if(_camProp->set(cv::CAP_PROP_HUE, format.hue))
 			_format.hue = format.hue;
 			
 	if(_format.saturation != format.saturation)
-		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
-			_format.hue = format.hue;
+		if(_camProp->set(cv::CAP_PROP_SATURATION, format.saturation))
+			_format.saturation = format.saturation;
 			
 	if(_format.brightness != format.brightness)
-		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
-			_format.hue = format.hue;
+		if(_camProp->set(cv::CAP_PROP_BRIGHTNESS, format.brightness))
+			_format.brightness = format.brightness;
 			
 	if(_format.contrast	!= format.contrast)
-		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
-			_format.hue = format.hue;
+		if(_camProp->set(cv::CAP_PROP_CONTRAST, format.contrast))
+			_format.contrast = format.contrast;
 			
 	if(_format.exposure	!= format.exposure)
-		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
-			_format.hue = format.hue;
+		if(_camProp->set(cv::CAP_PROP_EXPOSURE, format.exposure))
+			_format.exposure = format.exposure;
 	
 	return true;
 }

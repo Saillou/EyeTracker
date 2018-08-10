@@ -18,7 +18,12 @@
 #include "ManagerConnection.hpp"
 #include "Chronometre.hpp"
 
+
 namespace Dk {
+	namespace CvProperties {
+		class CaptureProperties; // forward
+	}
+	
 	class VideoStreamWriter {
 	public:
 		// Constructors
@@ -63,6 +68,7 @@ namespace Dk {
 		Protocole::FormatStream _format;
 		cv::Mat _frameToCompress;
 		std::shared_ptr<cv::VideoCapture> _pCam;
+		std::shared_ptr<CvProperties::CaptureProperties> _camProp;
 	};
 }
 
