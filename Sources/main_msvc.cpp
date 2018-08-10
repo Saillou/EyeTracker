@@ -61,13 +61,20 @@ int main() {
 	interface0->add(btn);
 	interface0->add(btnQ);
 	
-	auto interface1 = gui.createInterface();
 	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ");
+	auto cbExposure 	= std::make_shared<CheckBox>("Auto ");
+	
 	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ");
 	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ");
 	auto tbHue			= std::make_shared<TrackBar>("Hue: ");
 	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ");
-	interface1->add(tbExposure, tbBrightness, tbContrast, tbHue, tbSaturation);
+	
+	auto interfaceExpo 	= gui.createInterface();
+	auto interface1 	= gui.createInterface();
+	
+	interfaceExpo->add(tbExposure);
+	interfaceExpo->add(cbExposure);
+	interface1->add(interfaceExpo, tbBrightness, tbContrast, tbHue, tbSaturation);
 	
 	auto interface2 = gui.createInterface();
 	auto screen	= std::make_shared<Displayable>("Frame", frame);

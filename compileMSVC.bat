@@ -47,7 +47,6 @@ if exist %object%\*.obj (
 
 ::Compile sources 
 cl	/c /EHa /W3 ^
-	%source%\Dk\ManagerConnection.cpp ^
 	%source%\main_msvc.cpp ^
 	%source%\main_server.cpp ^
 	%source%\Dk\Protocole.cpp ^
@@ -55,6 +54,7 @@ cl	/c /EHa /W3 ^
 	%source%\Dk\Server.cpp ^
 	%source%\Dk\VideoStream.cpp ^
 	%source%\Dk\VideoStreamWriter.cpp ^
+	%source%\Dk\ManagerConnection.cpp ^
 	/I D:\Dev\Opencv3\opencv\build_vc12\include ^
 	/I D:\Dev\LibJpeg\libjpeg-turbo-1.5.2 ^
 	/Fo%object%\

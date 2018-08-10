@@ -3,9 +3,18 @@
 
 #include "Gui/CvGui.hpp"
 
-#include <opencv2/videoio.hpp>
-
 using namespace CvGui;
+
+// ---- Callbacks -----
+void manageStream(void*, void*) {
+
+}
+
+void quit(void* in, void*) {
+	bool* inStop = static_cast<bool*>(in);
+	if(inStop)
+		*inStop = true;	
+}
 
 void drawRandom(cv::Mat& output) {
 	// Define constantes
@@ -39,94 +48,63 @@ void drawRandom(cv::Mat& output) {
 	cv::line(output, center, center + direction,SPEED_COLOR, 2, cv::LINE_AA);
 }
 
-double To_double(const std::string& digits, const int base = 10) {
-	int res 		= 0;
-	int scale 		= 1;
-	bool decimal 	= false;
-	double signe 	= 1.0;
-	
-	auto it = digits.begin();
-	if(*it == '-') {
-		signe = -1.0;
-		++it;
-	}
-		
-	for(; it != digits.end(); ++it) {
-		char c = *it;
-		if(c != '.') {
-			res = (int)(c - '0') + res * base;
-			if(decimal) scale *= base;
-		}
-		else decimal = true;
-	}
-	
-	return signe*res/scale;
-}
-
-// ------------------  M a i n ---------------------
 int main() {
-	// Inputs 
-	std::vector<std::string> inputs {
-		std::to_string(1505),
-		std::to_string(1.505),
-		std::to_string(-1505),
-		std::to_string(-1.505),
-		std::to_string(0),
-		std::to_string(0.0),
-		std::to_string(-0.0)
-	};
-	
-	for(std::string input : inputs) {
-		std::cout << input << " => " << To_double(input) << std::endl;
-	}
-	std::cout << "" << " => " << To_double("") << std::endl;
-	
-	return 0;
-	/*
-	// ----- Simulacre datas -----
-	cv::Mat frame = cv::Mat::zeros(240, 320, CV_8UC3);
-	
 	// ------ Create GUI ------
 	Gui<AddPolicy::Col> gui;
-	auto interface0 = gui.createInterface("Interface_0");
-	auto interface1 = gui.createInterface("Interface_1");
+	cv::Mat frame(480, 640, CV_8UC3, cv::Scalar::all(0));
+	cv::Size margin(25, 25);
 	
-	auto label 		= std::make_shared<Label>("List of Widgets: ");
-	auto trackbar 	= std::make_shared<TrackBar>("Move Me: ");
-	auto button 	= std::make_shared<PushButton>("Click Me !", cv::Size(150, 50));
-	auto checkBox 	= std::make_shared<CheckBox>("Check Me: ");
-	auto screen		= std::make_shared<Displayable>("Frame", frame);
-	auto spacer 	= std::make_shared<Spacer>(cv::Size(50, 250));
+	// Widgets
+	auto btn 	= std::make_shared<PushButton>("Play/Pause", cv::Size(150, 50));
+	auto btnQ	= std::make_shared<PushButton>("Quit", cv::Size(150, 50));
+	auto screen	= std::make_shared<Displayable>("Frame", frame);
 	
-	interface0->add(spacer);
-	interface0->add(label, trackbar, button, checkBox);
-	interface0->add(spacer);
+	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ");
+	auto cbExposure 	= std::make_shared<CheckBox>("Auto ");
 	
-	interface1->add(screen);
+	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ");
+	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ");
+	auto tbHue			= std::make_shared<TrackBar>("Hue: ");
+	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ");
 	
-	gui.add(interface0);
-	gui.add(interface1);
+	// Interfaces
+	auto interface0 	= gui.createInterface();
+	interface0->add(btn);
+	interface0->add(btnQ);
 	
-	// Attach events
-	trackbar->listen(TrackBar::onValueChanged, [=](void*, void*) {
-		std::cout << "TrackBar: " << trackbar->getValue() << std::endl;
-	});
-	button->listen(PushButton::onClick, [=, &frame](void*, void*) {
-		frame = cv::Mat::zeros(240, 320, CV_8UC3);
-		std::cout << "Button clicked : frame reset." << std::endl;
-	});
-	checkBox->listen(CheckBox::onValueChanged, [=](void*, void*) {
-		std::cout << "CheckBox: " << checkBox->getChecked() << std::endl;
-	});
+	auto interfaceExpo 	= gui.createInterface();
+	interfaceExpo->add(tbExposure);
+	interfaceExpo->add(cbExposure);
+	
+	auto interface1 	= gui.createInterface();
+	interface1->add(interfaceExpo, tbBrightness, tbContrast, tbHue, tbSaturation);
+	
+	auto interface2 	= gui.createInterface();
+	interface2->add(std::make_shared<Spacer>(margin));
+	interface2->add(interface1);
+	interface2->add(screen);
+	interface2->add(std::make_shared<Spacer>(margin));
+	
+	gui.add(std::make_shared<Spacer>(margin), interface0, std::make_shared<Spacer>(margin), interface2, std::make_shared<Spacer>(margin));
+	
+	// Listen events
+	bool stop = false;
+	
+	btn->listen(PushButton::onClick, manageStream, nullptr);	// Play/Pause video
+	btnQ->listen(PushButton::onClick, quit, (void*)(&stop));	// Quit application
+	
 
-	// ------ Loop it ------	
 	gui.show();
-	while(gui.wait(30) != gui.KEY_ESCAPE) {
+	// ----------------- Update continuously -----------------	
+	while(!stop) {		
 		// Do things
 		drawRandom(frame);
 		screen->setFrame(frame);
+		
+		// Sleep a bit
+		gui.wait(30);
 	}
+	// -------------------------------------------------------------- //
 	
 	return 0;
-	*/
 }

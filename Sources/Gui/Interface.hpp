@@ -239,10 +239,10 @@ private:
 		_pHasChanged |= needUpdate;	
 	}
 	
-	_IntefacedObject* _findObjFromWidget(Widget* widget) {
+	_IntefacedObject* _findObjFromWidget(Widget* widget) {		
 		for(auto& child : _pChildren) {
 			Widget* childWidget = dynamic_cast<Widget*>(child.ptrObject.get());
-			if(childWidget == widget) 
+			if(childWidget && childWidget == widget) 
 				return &child;
 		}
 		return nullptr;
