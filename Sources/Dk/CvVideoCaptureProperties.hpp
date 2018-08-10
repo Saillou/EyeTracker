@@ -119,12 +119,18 @@ namespace CvProperties {
 		
 		// Methods
 		const Property& get(int cvPropertyId, bool update = false) {
+			if(!_pCam)
+				return false;
+			
 			if(update)
 				_pProperties[cvPropertyId] = Helper::Get(*_pCam, cvPropertyId);
 			
 			return _pProperties[cvPropertyId];
 		}
 		bool set(const Property& prop) {
+			if(!_pCam)
+				return false;
+			
 			bool res = Helper::Set(*_pCam, prop);
 			
 			// Update memory

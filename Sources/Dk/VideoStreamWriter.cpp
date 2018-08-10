@@ -70,37 +70,44 @@ void VideoStreamWriter::_handleClient(int idClient) {
 			break;	// Error, better to disconnect
 
 		// Treat client
-		clientWantToQuit = _treatClient(idClient, msg.getAction());
+		clientWantToQuit = _treatClient(idClient, msg);
 	} while(!clientWantToQuit);
 	
 	_server->closeSocket(idClient);
 	std::cout << "Client disconnected." << std::endl;	
 }
 
-bool VideoStreamWriter::_treatClient(const int idClient, const size_t action) {
-	BinMessage msg;
+bool VideoStreamWriter::_treatClient(const int idClient, const BinMessage& msgIn) {
+	BinMessage msgOut;
 	bool clientWantToQuit = false;
 	
-	switch(action) {
+	switch(msgIn.getAction()) {
 		// Client quit
 		case BIN_QUIT:
 			clientWantToQuit = true;
 		break;
 		
-		// Frame info asked
-		case BIN_INFO:		
-			msg.set(BIN_MCMD, Message::To_string(_format.toCmd().serialize()));
-			_server->write(msg, idClient);
+		// Frame info asked - change requested
+		case BIN_INFO:	
+		{
+			// Changes are requested
+			if(msgIn.getSize() > 0) 
+				_changeFormat(FormatStream(CmdMessage(Message::To_string(msgIn.getData())))); // clojure style lol
+			
+			// Send format
+			msgOut.set(BIN_MCMD, Message::To_string(_format.toCmd().serialize()));
+			_server->write(msgOut, idClient);
+		}
 		break;
 		
 		// Send a frame
 		case BIN_GAZO: 
 			_mutexBuffer.lock();
-			msg.set(BIN_GAZO, (size_t)_bufSize, (const char*)_buff);
+			msgOut.set(BIN_GAZO, (size_t)_bufSize, (const char*)_buff);
 			_mutexBuffer.unlock();
 			
 			// Write the message						
-			_server->write(msg, idClient);
+			_server->write(msgOut, idClient);
 		break;
 	}
 	
@@ -177,6 +184,42 @@ const Protocole::FormatStream& VideoStreamWriter::startBroadcast(std::shared_ptr
 	
 	return _format;
 }
+
+bool VideoStreamWriter::_changeFormat(const Protocole::FormatStream& format) {
+	// Members initialized and working
+	if(!_valide || !_pCam)
+		return false;
+		
+	// Cannot change frame parameters
+	if(format.height != _format.height || format.width != _format.width || format.channels != _format.channels)
+		return false;
+	
+	// Get camera properties
+	CvProperties::CaptureProperties camProp(_pCam, Dk::CvProperties::Camera);
+	
+	if(_format.hue != format.hue)
+		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
+			_format.hue = format.hue;
+			
+	if(_format.saturation != format.saturation)
+		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
+			_format.hue = format.hue;
+			
+	if(_format.brightness != format.brightness)
+		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
+			_format.hue = format.hue;
+			
+	if(_format.contrast	!= format.contrast)
+		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
+			_format.hue = format.hue;
+			
+	if(_format.exposure	!= format.exposure)
+		if(_pCam.set(cv::CAP_PROP_HUE, format.hue);
+			_format.hue = format.hue;
+	
+	return true;
+}
+
 const cv::Mat VideoStreamWriter::update() {
 	cv::Mat newFrame;
 	

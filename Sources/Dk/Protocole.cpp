@@ -16,6 +16,9 @@ FormatStream::FormatStream(int h, int w, int c) :
 {	
 	/* Nothing else to do. */	
 }
+FormatStream::FormatStream(const CmdMessage& cmd) {
+	fromCmd(cmd);
+}
 
 // Methods
 bool FormatStream::isEmpty() const {

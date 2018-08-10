@@ -140,6 +140,7 @@ namespace Protocole {
 	struct FormatStream {
 		// Constructor
 		FormatStream(int h = 0, int w = 0, int c = 0);
+		explicit FormatStream(const CmdMessage& cmd);
 		
 		// Methods
 		bool isEmpty() const;

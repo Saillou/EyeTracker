@@ -40,8 +40,9 @@ namespace Dk {
 	private:
 		// Methods
 		void _handleClient(int idClient);
-		bool _treatClient(int idClient, const size_t action);
+		bool _treatClient(int idClient, const Protocole::BinMessage& msg);
 		void _compressFrame(const cv::Mat& frame);
+		bool _changeFormat(const Protocole::FormatStream& newFormat);
 		
 		// Members
 		std::shared_ptr<Server> _server;
