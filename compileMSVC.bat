@@ -47,9 +47,9 @@ if exist %object%\*.obj (
 
 ::Compile sources 
 cl	/c /EHa /W3 ^
+	%source%\Dk\ManagerConnection.cpp ^
 	%source%\main_msvc.cpp ^
 	%source%\main_server.cpp ^
-	%source%\Dk\ManagerConnection.cpp ^
 	%source%\Dk\Protocole.cpp ^
 	%source%\Dk\Socket.cpp ^
 	%source%\Dk\Server.cpp ^
@@ -76,6 +76,7 @@ if exist %object%\*.obj (
 		opencv_core320.lib ^
 		turbojpeg.lib ^
 		ws2_32.lib ^
+		iphlpapi.lib ^
 		/LIBPATH:D:\Dev\Opencv3\opencv\build_vc12\lib\Release ^
 		/LIBPATH:D:\Dev\LibJpeg\build\Release ^
 		/MACHINE:X64 /INCREMENTAL:NO /NOLOGO /DYNAMICBASE /ERRORREPORT:PROMPT ^
@@ -96,6 +97,7 @@ if exist %object%\*.obj (
 		opencv_core320.lib ^
 		turbojpeg.lib ^
 		ws2_32.lib ^
+		iphlpapi.lib ^
 		/LIBPATH:D:\Dev\Opencv3\opencv\build_vc12\lib\Release ^
 		/LIBPATH:D:\Dev\LibJpeg\build\Release ^
 		/MACHINE:X64 /INCREMENTAL:NO /NOLOGO /DYNAMICBASE /ERRORREPORT:PROMPT ^

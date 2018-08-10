@@ -36,7 +36,7 @@ bool ManagerConnection::initialize() {
 }
 
 
-std::shared_ptr<Server> ManagerConnection::createServer(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const int port, const int pending) {
+std::shared_ptr<Server> ManagerConnection::createServer(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const int port, const int pending) const {
 	// Context ok ?
 	if(!_initialized) {
 		std::cout << "Manager not initialized." << std::endl;
@@ -50,7 +50,7 @@ std::shared_ptr<Server> ManagerConnection::createServer(const Socket::CONNECTION
 	
 	return serv;
 }
-std::shared_ptr<Socket> ManagerConnection::connectTo(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const std::string& ipAdress, const int port) {
+std::shared_ptr<Socket> ManagerConnection::connectTo(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const std::string& ipAdress, const int port) const {
 	// Context ok ?
 	if(!_initialized) {
 		std::cout << "Manager not initialized." << std::endl;
@@ -70,7 +70,7 @@ bool ManagerConnection::isInitialized() const {
 	return _initialized;
 }
 
-std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress& ipBeg, const IpAdress& ipEnd, int stopAfterNb) {	
+std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress& ipBeg, const IpAdress& ipEnd, int stopAfterNb) const {	
 	// Determine delta port
 	int pBeg = ipBeg.getPort();
 	int pEnd = ipBeg.getPort();
@@ -94,23 +94,71 @@ std::vector<ManagerConnection::IpAdress> ManagerConnection::snif(const IpAdress&
 	// Iterate through all ip
 	std::vector<IpAdress> ipAvailable;
 	
+	std::cout << "Snif adresses:" << std::endl;
 	for(int port = pBeg; port <= pEnd; port++) {
 		for(size_t target = sBeg; target <= sEnd; target++) {
 			IpAdress ipTested(target, port);
+			printf("\t %s .... ", ipTested.toFullString().c_str());
+			
 			if(!ipTested.isValide()) 
 				continue;
 
 			if(connectTo(Socket::TCP, Socket::NOT_BLOCKING, ipTested.toString(), port) != nullptr) {
 				ipAvailable.push_back(ipTested);
-
+				printf(" Ok \n");
 				if(stopAfterNb > 0 && (int)ipAvailable.size() >= stopAfterNb)
 					break;
 			}
-			
+			else 
+				printf(" X \n");
 		}
 	}
 	
 	return ipAvailable;
+}
+
+ManagerConnection::IpAdress ManagerConnection::getMyDHCP() const {
+	IpAdress ipAdress("192.168.1.0:0"); // Init with a basic localhost
+	
+#ifdef _WIN32
+	printf("All connections: \n");
+	
+	ULONG outBufLen = 15000; 					// A 15 KB buffer
+	ULONG flags 	= GAA_FLAG_INCLUDE_PREFIX; 	// GetAdaptersAddresses' flags
+	PIP_ADAPTER_ADDRESSES pAddresses = NULL; 	// All interfaces adress
+
+	pAddresses 		= (IP_ADAPTER_ADDRESSES *) malloc(outBufLen);
+	DWORD dwRetVal	= GetAdaptersAddresses(AF_INET, flags, NULL, pAddresses, &outBufLen); // Ipv4
+	
+	if (dwRetVal == NO_ERROR) {
+		for(PIP_ADAPTER_ADDRESSES pCurrAddresses = pAddresses; pCurrAddresses != NULL; pCurrAddresses = pCurrAddresses->Next) {
+			SOCKET_ADDRESS sck = pCurrAddresses->Dhcpv4Server;
+			// Media connected with an IPv4
+			if(sck.iSockaddrLength > 0 && sck.lpSockaddr->sa_family == AF_INET) {
+				struct sockaddr_in* addr = (struct sockaddr_in*)(sck.lpSockaddr);
+				char ipAddress[INET_ADDRSTRLEN];
+				inet_ntop(AF_INET, &(addr->sin_addr), ipAddress, INET_ADDRSTRLEN);
+				
+				// Update last adress
+				ipAdress = IpAdress(ipAddress, (int)addr->sin_port);
+				
+				// Display info
+				printf("\t Friendly name: .... : %wS\n", pCurrAddresses->FriendlyName);
+				printf("\t Description: ...... : %wS\n", pCurrAddresses->Description);
+				printf("\t IPv4: ............. : %s\n", ipAddress);
+				printf("\t Port: ............. : %d\n", addr->sin_port);
+				printf("\n");
+				
+				break; // Need only one
+			}
+		}
+	}
+
+	if (pAddresses)
+		free(pAddresses);
+#endif
+	
+	return ipAdress;
 }
 
 // --------- Nested class --------- //
@@ -187,6 +235,17 @@ bool ManagerConnection::IpAdress::_targetFromString(const std::string& path) {
 bool ManagerConnection::IpAdress::_portFromString(const std::string& port) {
 	_port = (int)Protocole::Message::To_unsignedInt(port);
 	return _port > 0 && _port < 1e4;
+}
+
+// Operators
+ManagerConnection::IpAdress ManagerConnection::IpAdress::operator+(int d) {
+	return IpAdress(this->toNumber() + d, this->getPort());
+}
+
+// Setters
+void ManagerConnection::IpAdress::setPort(int p) {
+	_port 	= p;
+	_valide = (bool)(_port > 0 && _port < 1e4);
 }
 
 // Getters

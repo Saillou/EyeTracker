@@ -30,7 +30,10 @@ int main() {
 	ManagerConnection managerConnection;
 	managerConnection.initialize();
 	
-	auto ipOpened = managerConnection.snif(ManagerConnection::IpAdress("192.168.128.30", 3000), ManagerConnection::IpAdress("192.168.128.60", 3000), 1);	
+	auto dhcpv4 	= managerConnection.getMyDHCP();
+	dhcpv4.setPort(3000);
+
+	auto ipOpened 	= managerConnection.snif(dhcpv4+1, dhcpv4+255, 1);	
 	if(ipOpened.size() == 0)
 		return 0;
 	// -------------------------------------------------------------- //

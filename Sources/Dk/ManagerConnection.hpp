@@ -2,7 +2,9 @@
 #define MANAGER_CONNECTION_H
 
 #ifdef _WIN32
-	#include <winsock2.h>
+	#include <winsock2.h> // Socket
+	#include <iphlpapi.h> // Adapter Adress
+	#include <Ws2tcpip.h> // inet_ntop 
 #endif
 
 #include <iostream>
@@ -31,10 +33,15 @@ public:
 		std::string toFullString() const;
 		size_t toNumber() const;
 		
+		// Setters
+		void setPort(int);
+		
 		// Getters
 		int getPort() const;
 		const std::vector<char>& getTarget() const;
 		bool isValide() const;
+		
+		IpAdress operator+(int);
 		
 	private:
 		// Methods
@@ -54,9 +61,10 @@ public:
 	
 	// Methods
 	bool initialize();
-	std::shared_ptr<Server> createServer(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const int port = 80, const int pending = 10);
-	std::shared_ptr<Socket> connectTo(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const std::string& ipAdress = "localhost", const int port = 80);
-	std::vector<IpAdress> snif(const IpAdress& ipBeg, const IpAdress& ipEnd, int stopAfterNb = -1);
+	std::shared_ptr<Server> createServer(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const int port = 80, const int pending = 10) const;
+	std::shared_ptr<Socket> connectTo(const Socket::CONNECTION_TYPE type, const Socket::CONNECTION_MODE mode, const std::string& ipAdress = "localhost", const int port = 80) const;
+	std::vector<IpAdress> snif(const IpAdress& ipBeg, const IpAdress& ipEnd, int stopAfterNb = -1) const;
+	IpAdress getMyDHCP() const; // Only IPv4 family yet.
 	
 	// Getters
 	bool isInitialized() const;	
