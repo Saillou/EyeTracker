@@ -7,6 +7,11 @@
 	#include <Ws2tcpip.h> // inet_ntop 
 #endif
 
+#ifdef __linux__ 
+	#include <sys/types.h> 	// getifaddrs
+	#include <ifaddrs.h>	// getifaddrs
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <vector>

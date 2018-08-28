@@ -114,7 +114,7 @@ fi
 
 echo "Compile sources"
 g++ -c -std=gnu++11 -O2 \
-	-Wall \
+	-Wall -Wno-psabi \
 	$PathSources \
 	-I/usr/local/include/  \
 	-I/usr/local/lib/libjpeg/

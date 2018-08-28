@@ -168,9 +168,10 @@ ManagerConnection::IpAdress ManagerConnection::getMyDHCP() const {
         temp_addr = interfaces;
         while(temp_addr != NULL) {
             if(temp_addr->ifa_addr->sa_family == AF_INET) {
-				std::stirng strAdress = inet_ntoa(((struct sockaddr_in*)temp_addr->ifa_addr)->sin_addr);
-				ipAdress  = IpAdress(strAdress, 0);
-				break; // Need only one
+				std::string strAdress = inet_ntoa(((struct sockaddr_in*)temp_addr->ifa_addr)->sin_addr);
+				ipAdress = IpAdress(strAdress, 0);
+				if(strAdress != "127.0.0.1") 
+					break; // Don't want the local one if an other exists
             }
             temp_addr = temp_addr->ifa_next;
         }
