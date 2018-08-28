@@ -11,7 +11,8 @@ public:
 	// Constructors
 	explicit Gui(const std::string name = "Gui") :
 		Interface<AddPolicy>(name),
-		_mouseCbkInitialized(false)
+		_mouseCbkInitialized(false),
+		_wasClosed(false)
 	{
 	}
 	
@@ -24,9 +25,17 @@ public:
 	}
 	
 	const int wait(unsigned int ms = 0) {
-		this->_update();
-		this->show();
+		this->_wasClosed = cv::getWindowProperty(this->_pName, 0) < 0;
+		
+		if(!this->_wasClosed) {
+			this->_update();
+			this->show();
+		}
 		return cv::waitKey(ms);
+	}
+	
+	bool wasClosed() const {
+		return this->_wasClosed;
 	}
 	
 	// Constantes public members
@@ -61,6 +70,7 @@ private:
 	
 	// Members
 	bool _mouseCbkInitialized;
+	bool _wasClosed;
 };
 
 }
