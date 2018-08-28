@@ -21,6 +21,7 @@ namespace Protocole {
 	static const std::string CMD_BRIGHTNESS = "BRIGHTNESS";
 	static const std::string CMD_CONTRAST 	= "CONTRAST";
 	static const std::string CMD_EXPOSURE 	= "EXPOSURE";
+	static const std::string CMD_AUTO_EXPOSURE 	= "AUTO_EXPOSURE";
 }
 
 #endif

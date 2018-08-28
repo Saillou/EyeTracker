@@ -47,11 +47,11 @@ void changeParam(void* in, void* out) {
 	
 	// Do something
 	switch(CV_PARAM) {
-		case cv::CAP_PROP_EXPOSURE: 	format.exposure 	= value; break;
-		case cv::CAP_PROP_BRIGHTNESS: 	format.brightness 	= value; break;
-		case cv::CAP_PROP_CONTRAST: 	format.contrast 	= value; break;
+		case cv::CAP_PROP_EXPOSURE: 	format.exposure 	= std::pow(2.0, -value-1); break;
+		case cv::CAP_PROP_BRIGHTNESS: 	format.brightness 	= value*0.01; break;
+		case cv::CAP_PROP_CONTRAST: 	format.contrast 	= value*0.01; break;
 		case cv::CAP_PROP_HUE: 			format.hue 			= value; break;
-		case cv::CAP_PROP_SATURATION: 	format.saturation 	= value; break;
+		case cv::CAP_PROP_SATURATION: 	format.saturation 	= value*0.01; break;
 		
 		default: return; // Nothing changed.
 	}
@@ -99,13 +99,13 @@ int main() {
 	auto buttonPlay 	= std::make_shared<PushButton>("Play/Pause", 	cv::Size(150, 50));
 	auto buttonQuit		= std::make_shared<PushButton>("Quit", 			cv::Size(150, 50));
 	
-	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ", 		-15, -1, (int)format.exposure);
+	auto tbExposure 	= std::make_shared<TrackBar>("Exposure: ", 		0, 12, (int)format.exposure);
 	auto cbExposure 	= std::make_shared<CheckBox>("Auto ");
 	
-	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ", 	-100, 100, 	(int)format.brightness);
-	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ", 		0, 100, 	(int)format.contrast);
+	auto tbBrightness	= std::make_shared<TrackBar>("Brightness: ", 	0, 100, 50);
+	auto tbContrast		= std::make_shared<TrackBar>("Contrast: ", 		0, 100, 50);
 	auto tbHue			= std::make_shared<TrackBar>("Hue: ", 			-100, 100, 	(int)format.hue);
-	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ", 	0, 100, 	(int)format.saturation);
+	auto tbSaturation	= std::make_shared<TrackBar>("Saturation: ", 	0, 100, 50);
 	
 	auto screen	= std::make_shared<Displayable>("Frame", frame);
 	auto margin	= std::make_shared<Spacer>(cv::Size(25,25));

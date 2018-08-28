@@ -158,6 +158,7 @@ namespace Protocole {
 		double brightness;
 		double contrast;
 		double exposure;
+		double autoExposure;
 	};
 }
 
