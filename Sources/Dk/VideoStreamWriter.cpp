@@ -171,6 +171,7 @@ const Protocole::FormatStream& VideoStreamWriter::startBroadcast(std::shared_ptr
 	_format.brightness 	= _camProp->get(cv::CAP_PROP_BRIGHTNESS).value.manual;
 	_format.contrast 	= _camProp->get(cv::CAP_PROP_CONTRAST).value.manual;
 	_format.exposure 	= _camProp->get(cv::CAP_PROP_EXPOSURE).value.manual;
+	_format.autoExposure = _camProp->get(cv::CAP_PROP_AUTO_EXPOSURE).value.manual;
 	
 	// Init buffer - create a first (black) frame
 	cv::Mat frameInit = cv::Mat::zeros(_format.height, _format.width, _format.channels == 1 ? CV_8UC1 : CV_8UC3);
@@ -216,6 +217,10 @@ bool VideoStreamWriter::_changeFormat(const Protocole::FormatStream& format) {
 	if(_format.exposure	!= format.exposure)
 		if(_camProp->set(cv::CAP_PROP_EXPOSURE, format.exposure))
 			_format.exposure = format.exposure;
+		
+	if(_format.autoExposure	!= format.autoExposure)
+		if(_camProp->set(cv::CAP_PROP_AUTO_EXPOSURE, format.autoExposure))
+			_format.autoExposure = format.autoExposure;
 	
 	return true;
 }
