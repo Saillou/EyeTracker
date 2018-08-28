@@ -1,7 +1,8 @@
-#ifndef CHRONOMETRE_H
-#define CHRONOMETRE_H
+#ifndef CHRONOMETRE_HPP
+#define CHRONOMETRE_HPP
 
 #include <chrono>
+#include <time.h>
 
 struct Chronometre {	
 public:
@@ -39,6 +40,38 @@ public:
 	static void wait(int ms) {
 		_timePoint c0 = _now();
 		while(_diffMs(c0, _now()) < ms);
+	}
+	
+	static std::string date() {
+		time_t rawtime = time(NULL);
+		struct tm timeInfo;
+		
+#ifdef _WIN32
+		localtime_s(&timeInfo, &rawtime);
+#else
+		struct tm *ptrTimeInfo;
+		ptrTimeInfo = localtime(&rawtime);
+		timeInfo = *ptrTimeInfo;
+#endif
+
+		auto __int2paddedStr = [](const int _int, const size_t pad) {
+			std::string intstr = std::to_string(_int);
+			if(intstr.size() >= pad)
+				return intstr;
+			else
+				return std::string(pad - intstr.size() , '0') + intstr;
+		};		
+		
+		std::stringstream ss;
+		ss << __int2paddedStr(timeInfo.tm_year + 1900, 4);
+		ss << __int2paddedStr(timeInfo.tm_mon  + 1, 2);
+		ss << __int2paddedStr(timeInfo.tm_mday,	2);
+		ss << "_";
+		ss << __int2paddedStr(timeInfo.tm_hour,	2);
+		ss << __int2paddedStr(timeInfo.tm_min,	2);
+		ss << __int2paddedStr(timeInfo.tm_sec, 	2);
+		
+		return ss.str();
 	}
 	
 private:
