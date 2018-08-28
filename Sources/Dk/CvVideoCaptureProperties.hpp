@@ -49,7 +49,28 @@ namespace CvProperties {
 			cv::CAP_PROP_GAIN, 			// Gain of the image (only for cameras).
 			cv::CAP_PROP_EXPOSURE, 		// Exposure (only for cameras).
 			cv::CAP_PROP_CONVERT_RGB, 	// Boolean flags indicating whether images should be converted to RGB.
+			cv::CAP_PROP_WHITE_BALANCE_BLUE_U,
 			cv::CAP_PROP_RECTIFICATION,	// Rectification flag for stereo cameras (note: only supported by DC1394 v 2.x backend currently)
+			cv::CAP_PROP_MONOCHROME,
+			cv::CAP_PROP_SHARPNESS,
+			cv::CAP_PROP_AUTO_EXPOSURE,
+			cv::CAP_PROP_GAMMA,
+			cv::CAP_PROP_TEMPERATURE,
+			cv::CAP_PROP_TRIGGER,
+			cv::CAP_PROP_TRIGGER_DELAY,
+			cv::CAP_PROP_WHITE_BALANCE_RED_V,
+			cv::CAP_PROP_ZOOM,
+			cv::CAP_PROP_FOCUS,
+			cv::CAP_PROP_GUID,
+			cv::CAP_PROP_ISO_SPEED,
+			cv::CAP_PROP_BACKLIGHT,
+			cv::CAP_PROP_PAN,
+			cv::CAP_PROP_TILT,
+			cv::CAP_PROP_ROLL,
+			cv::CAP_PROP_IRIS,
+			cv::CAP_PROP_SETTINGS,
+			cv::CAP_PROP_BUFFERSIZE,
+			cv::CAP_PROP_AUTOFOCUS,
 		};	
 	}
 	const std::string GetPropertyName(int id) {
@@ -71,8 +92,29 @@ namespace CvProperties {
 			case cv::CAP_PROP_GAIN: 			return "CAP_PROP_GAIN";
 			case cv::CAP_PROP_EXPOSURE: 		return "CAP_PROP_EXPOSURE";
 			case cv::CAP_PROP_CONVERT_RGB: 		return "CAP_PROP_CONVERT_RGB";
-			case cv::CAP_PROP_RECTIFICATION: 	return "CAP_PROP_RECTIFICATION";
-			
+			case cv::CAP_PROP_WHITE_BALANCE_BLUE_U: return "CAP_PROP_WHITE_BALANCE_BLUE_U";
+			case cv::CAP_PROP_RECTIFICATION: 	return "CAP_PROP_RECTIFICATION"; 
+			case cv::CAP_PROP_MONOCHROME:		return "CAP_PROP_MONOCHROME";
+			case cv::CAP_PROP_SHARPNESS: 		return "CAP_PROP_SHARPNESS";
+			case cv::CAP_PROP_AUTO_EXPOSURE: 	return "CAP_PROP_AUTO_EXPOSURE";
+			case cv::CAP_PROP_GAMMA: 			return "CAP_PROP_GAMMA";
+			case cv::CAP_PROP_TEMPERATURE: 		return "CAP_PROP_TEMPERATURE";
+			case cv::CAP_PROP_TRIGGER: 			return "CAP_PROP_TRIGGER";
+			case cv::CAP_PROP_TRIGGER_DELAY: 	return "CAP_PROP_TRIGGER_DELAY";
+			case cv::CAP_PROP_WHITE_BALANCE_RED_V: return "CAP_PROP_WHITE_BALANCE_RED_V";
+			case cv::CAP_PROP_ZOOM: 			return "CAP_PROP_ZOOM";
+			case cv::CAP_PROP_FOCUS: 			return "CAP_PROP_FOCUS";
+			case cv::CAP_PROP_GUID: 			return "CAP_PROP_GUID";
+			case cv::CAP_PROP_ISO_SPEED: 		return "CAP_PROP_ISO_SPEED";
+			case cv::CAP_PROP_BACKLIGHT: 		return "CAP_PROP_BACKLIGHT";
+			case cv::CAP_PROP_PAN: 				return "CAP_PROP_PAN";
+			case cv::CAP_PROP_TILT: 			return "CAP_PROP_TILT";
+			case cv::CAP_PROP_ROLL: 			return "CAP_PROP_ROLL";
+			case cv::CAP_PROP_IRIS: 			return "CAP_PROP_IRIS";
+			case cv::CAP_PROP_SETTINGS: 		return "CAP_PROP_SETTINGS";
+			case cv::CAP_PROP_BUFFERSIZE: 		return "CAP_PROP_BUFFERSIZE";
+			case cv::CAP_PROP_AUTOFOCUS: 		return "CAP_PROP_AUTOFOCUS";
+  
 			default: return "";
 		}
 	}
