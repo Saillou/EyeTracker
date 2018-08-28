@@ -122,10 +122,8 @@ void VideoStreamWriter::handleCompress() {
 			// Compress
 			_compressFrame(_frameToCompress);
 			_atomImageUpdated = false;
+			Chronometre::wait(1);
 		}
-		
-		// Update state
-		Chronometre::wait(1);
 	}	
 }
 
