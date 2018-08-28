@@ -47,11 +47,12 @@ void changeParam(void* in, void* out) {
 	
 	// Do something
 	switch(CV_PARAM) {
-		case cv::CAP_PROP_EXPOSURE: 	format.exposure 	= std::pow(2.0, -value-1); break;
-		case cv::CAP_PROP_BRIGHTNESS: 	format.brightness 	= value*0.01; break;
-		case cv::CAP_PROP_CONTRAST: 	format.contrast 	= value*0.01; break;
-		case cv::CAP_PROP_HUE: 			format.hue 			= value; break;
-		case cv::CAP_PROP_SATURATION: 	format.saturation 	= value*0.01; break;
+		case cv::CAP_PROP_EXPOSURE: 		format.exposure 	= std::pow(2.0, -value-1); break;
+		case cv::CAP_PROP_BRIGHTNESS: 		format.brightness 	= value*0.01; 		break;
+		case cv::CAP_PROP_CONTRAST: 		format.contrast 	= value*0.01; 		break;
+		case cv::CAP_PROP_HUE: 				format.hue 			= value; 			break;
+		case cv::CAP_PROP_SATURATION: 		format.saturation 	= value*0.01; 		break;
+		case cv::CAP_PROP_AUTO_EXPOSURE:	format.saturation 	= 0.25*(1-value); 	break;
 		
 		default: return; // Nothing changed.
 	}
@@ -133,11 +134,12 @@ int main() {
 	// Listen events
 	bool stop = false;
 	std::vector<strChangeParam> params {
-		{cv::CAP_PROP_EXPOSURE, 	&video},
-		{cv::CAP_PROP_BRIGHTNESS, 	&video},
-		{cv::CAP_PROP_CONTRAST, 	&video},
-		{cv::CAP_PROP_HUE, 			&video},
-		{cv::CAP_PROP_SATURATION, 	&video}
+		{cv::CAP_PROP_EXPOSURE, 		&video},
+		{cv::CAP_PROP_BRIGHTNESS, 		&video},
+		{cv::CAP_PROP_CONTRAST, 		&video},
+		{cv::CAP_PROP_HUE, 				&video},
+		{cv::CAP_PROP_SATURATION, 		&video},
+		{cv::CAP_PROP_AUTO_EXPOSURE,	&video}
 	};
 
 	buttonPlay->listen(PushButton::onClick, manageStream, (void*)(&video));	// Play/Pause video
@@ -148,6 +150,8 @@ int main() {
 	tbContrast	->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[2]));
 	tbHue		->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[3]));
 	tbSaturation->listen(TrackBar::onValueChanged, changeParam, (void*)(&params[4]));
+	
+	cbExposure->listen(CheckBox::onValueChanged, changeParam, (void*)(&params[5]));
 	
 	// ----------------- Update continuously -----------------	
 	Chronometre chrono;
