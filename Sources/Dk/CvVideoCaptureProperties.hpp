@@ -11,18 +11,9 @@
 namespace Dk {
 namespace CvProperties {
 	// ---------------------------- Structures ---------------------------------- 
-	struct Value {
-		bool automatique;
-		double manual;
-	};
-	struct Availability {
-		bool manual;
-		bool automatique;
-	};
 	struct Property {
 		int id;
-		Availability availability;
-		Value value;
+		double value;
 	};
 	
 	enum Type {
@@ -124,18 +115,13 @@ namespace CvProperties {
 	namespace Helper {	
 		Property Get(const cv::VideoCapture& cap, int property_id) {
 			Property prop;
-			prop.id 						= property_id;
-			prop.value.manual 				= cap.get(property_id);
-			prop.value.automatique 			= false;
-			prop.availability.manual 		= (prop.value.manual >= 0);
-			prop.availability.automatique 	= false;
+			prop.id 	= property_id;
+			prop.value 	= cap.get(property_id);
 			
 			return prop;
 		}
 		bool Set(cv::VideoCapture& cap, const Property& prop) {
-			bool ret = cap.set(prop.id, prop.value.manual);
-			
-			return ret;
+			return cap.set(prop.id, prop.value);
 		}
 		
 		std::map<int, Property> GetAll(const cv::VideoCapture& cap) {			
@@ -180,7 +166,7 @@ namespace CvProperties {
 		}
 		bool set(int cvPropertyId, double manualValue) {
 			auto prop = _pProperties[cvPropertyId];
-			prop.value.manual = manualValue;
+			prop.value = manualValue;
 			return set(prop);
 		}
 		

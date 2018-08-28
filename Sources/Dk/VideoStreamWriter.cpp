@@ -162,16 +162,16 @@ const Protocole::FormatStream& VideoStreamWriter::startBroadcast(std::shared_ptr
 	// Read camera format
 	_camProp = std::make_shared<CvProperties::CaptureProperties>(_pCam, Dk::CvProperties::Camera);
 	
-	_format.width 	 	= static_cast<int>(_camProp->get(cv::CAP_PROP_FRAME_WIDTH).value.manual);
-	_format.height 	 	= static_cast<int>(_camProp->get(cv::CAP_PROP_FRAME_HEIGHT).value.manual);
+	_format.width 	 	= static_cast<int>(_camProp->get(cv::CAP_PROP_FRAME_WIDTH).value);
+	_format.height 	 	= static_cast<int>(_camProp->get(cv::CAP_PROP_FRAME_HEIGHT).value);
 	_format.channels 	= 3;
-	_format.fps 		= static_cast<int>(_camProp->get(cv::CAP_PROP_FPS).value.manual);
-	_format.hue 		= _camProp->get(cv::CAP_PROP_HUE).value.manual;
-	_format.saturation 	= _camProp->get(cv::CAP_PROP_SATURATION).value.manual;
-	_format.brightness 	= _camProp->get(cv::CAP_PROP_BRIGHTNESS).value.manual;
-	_format.contrast 	= _camProp->get(cv::CAP_PROP_CONTRAST).value.manual;
-	_format.exposure 	= _camProp->get(cv::CAP_PROP_EXPOSURE).value.manual;
-	_format.autoExposure = _camProp->get(cv::CAP_PROP_AUTO_EXPOSURE).value.manual;
+	_format.fps 		= static_cast<int>(_camProp->get(cv::CAP_PROP_FPS).value);
+	_format.hue 		= _camProp->get(cv::CAP_PROP_HUE).value;
+	_format.saturation 	= _camProp->get(cv::CAP_PROP_SATURATION).value;
+	_format.brightness 	= _camProp->get(cv::CAP_PROP_BRIGHTNESS).value;
+	_format.contrast 	= _camProp->get(cv::CAP_PROP_CONTRAST).value;
+	_format.exposure 	= _camProp->get(cv::CAP_PROP_EXPOSURE).value;
+	_format.autoExposure = _camProp->get(cv::CAP_PROP_AUTO_EXPOSURE).value;
 	
 	// Init buffer - create a first (black) frame
 	cv::Mat frameInit = cv::Mat::zeros(_format.height, _format.width, _format.channels == 1 ? CV_8UC1 : CV_8UC3);
