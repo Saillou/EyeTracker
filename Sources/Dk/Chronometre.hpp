@@ -38,8 +38,9 @@ public:
 	
 	// Static methods
 	static void wait(int ms) {
-		_timePoint c0 = _now();
-		while(_diffMs(c0, _now()) < ms);
+		std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+		// _timePoint c0 = _now();
+		// while(_diffMs(c0, _now()) < ms);
 	}
 	
 	static std::string date() {
